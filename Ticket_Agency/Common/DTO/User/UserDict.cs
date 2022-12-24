@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Common.DTO
 {
-    public class User
+    public class UserDict
     {
         public int ID { get; set; }
         public string Username { get; set; }
@@ -14,5 +14,14 @@ namespace Common.DTO
         public string Password { get; set; }
         public List<int> PurchaseHistory { get; set; }
         public int BankAccountID { get; set; }
+
+        public UserDict(RegisterUser user)
+        {
+            this.Username = user.Username;
+            this.Email = user.Email;
+            this.Password = user.Password;
+            this.BankAccountID = user.BankAccountID;
+        }
+        public UserDict() { }
     }
 }

@@ -1,11 +1,16 @@
-﻿using Microsoft.ServiceFabric.Services.Communication.Runtime;
+﻿using Common.Interfaces;
+using Microsoft.ServiceFabric.Services.Communication.Runtime;
+using Microsoft.ServiceFabric.Services.Communication.Wcf;
+using Microsoft.ServiceFabric.Services.Communication.Wcf.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Fabric;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ValidatorStatelessService.Services;
 
 namespace ValidatorStatelessService
 {
@@ -24,7 +29,31 @@ namespace ValidatorStatelessService
         /// <returns>A collection of listeners.</returns>
         protected override IEnumerable<ServiceInstanceListener> CreateServiceInstanceListeners()
         {
-            return new ServiceInstanceListener[0];
+            return new List<ServiceInstanceListener>(1) {
+                new ServiceInstanceListener(context => this.CreateWcfCommunicationListenet(context)),
+            };
+        }
+
+        private ICommunicationListener CreateWcfCommunicationListenet(StatelessServiceContext context)
+        {
+            string host = context.NodeContext.IPAddressOrFQDN;
+
+            var endpointConfig = context.CodePackageActivationContext.GetEndpoint("WebCommunication");
+            int port = endpointConfig.Port;
+            var scheme = endpointConfig.Protocol.ToString();
+            string url = string.Format(CultureInfo.InvariantCulture, "net.{0}://{1}:{2}/WebCommunication", scheme, host, port);
+
+            WcfCommunicationListener<IValidatorService> listenet = null;
+
+            listenet = new WcfCommunicationListener<IValidatorService>(
+            serviceContext: context,
+            wcfServiceObject: new ValidatorService(),
+            listenerBinding: WcfUtility.CreateTcpListenerBinding(maxMessageSize: 1024 * 1024 * 1024),
+            address: new System.ServiceModel.EndpointAddress(url));
+
+            ServiceEventSource.Current.Message("Listener created.");
+
+            return listenet;
         }
 
         /// <summary>

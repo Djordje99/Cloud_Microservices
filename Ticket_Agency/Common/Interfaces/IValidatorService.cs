@@ -1,5 +1,4 @@
 ﻿using Common.DTO;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.ServiceModel;
@@ -12,6 +11,6 @@ namespace Common.Interfaces
     public interface IValidatorService
     {
         [OperationContract]
-        Task ValidateUserLogIn(string username);
+        Task ValidateUserRegister(RegisterUser user);
     }
 }

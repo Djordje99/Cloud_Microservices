@@ -12,9 +12,9 @@ namespace Common.Interfaces
     public interface IUserService
     {
         [OperationContract]
-        void Register(User user);
+        Task<bool> Register(UserDict user);
 
         [OperationContract]
-        void LogIn(string username, string password);
+        Task LogIn(string username, string password);
     }
 }

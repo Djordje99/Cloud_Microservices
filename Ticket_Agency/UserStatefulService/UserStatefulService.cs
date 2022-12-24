@@ -1,12 +1,18 @@
-﻿using Microsoft.ServiceFabric.Data.Collections;
+﻿using Common.DTO;
+using Common.Interfaces;
+using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
+using Microsoft.ServiceFabric.Services.Communication.Wcf;
+using Microsoft.ServiceFabric.Services.Communication.Wcf.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Fabric;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using UserStatefulService.Services;
 
 namespace UserStatefulService
 {
@@ -28,7 +34,31 @@ namespace UserStatefulService
         /// <returns>A collection of listeners.</returns>
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
         {
-            return new ServiceReplicaListener[0];
+            return new List<ServiceReplicaListener>(1) {
+                new ServiceReplicaListener(context => this.CreateWcfCommunicationListener(context)),
+            };
+        }
+
+        private ICommunicationListener CreateWcfCommunicationListener(StatefulServiceContext context)
+        {
+            string host = context.NodeContext.IPAddressOrFQDN;
+
+            var endpointConfig = context.CodePackageActivationContext.GetEndpoint("UserService");
+            int port = endpointConfig.Port;
+            var scheme = endpointConfig.Protocol.ToString();
+            string url = string.Format(CultureInfo.InvariantCulture, "net.{0}://{1}:{2}/UserService", scheme, host, port);
+
+            WcfCommunicationListener<IUserService> listenet = null;
+
+            listenet = new WcfCommunicationListener<IUserService>(
+            serviceContext: context,
+            wcfServiceObject: new UserService(this.StateManager),
+            listenerBinding: WcfUtility.CreateTcpListenerBinding(maxMessageSize: 1024 * 1024 * 1024),
+            address: new System.ServiceModel.EndpointAddress(url));
+
+            ServiceEventSource.Current.Message("Listener created.");
+
+            return listenet;
         }
 
         /// <summary>
@@ -38,31 +68,16 @@ namespace UserStatefulService
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service replica.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            // TODO: Replace the following sample code with your own logic 
-            //       or remove this RunAsync override if it's not needed in your service.
+            var userDict = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, UserDict>>("User");
 
-            var myDictionary = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, long>>("myDictionary");
+            //using (var tx = this.StateManager.CreateTransaction())
+            //{
+            //    await bankDict.AddOrUpdateAsync(tx, 0, 1000, (key, value) => value);
+            //    await bankDict.AddOrUpdateAsync(tx, 1, 1000, (key, value) => value);
+            //    await bankDict.AddOrUpdateAsync(tx, 2, 1000, (key, value) => value);
 
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                using (var tx = this.StateManager.CreateTransaction())
-                {
-                    var result = await myDictionary.TryGetValueAsync(tx, "Counter");
-
-                    ServiceEventSource.Current.ServiceMessage(this.Context, "Current Counter Value: {0}",
-                        result.HasValue ? result.Value.ToString() : "Value does not exist.");
-
-                    await myDictionary.AddOrUpdateAsync(tx, "Counter", 0, (key, value) => ++value);
-
-                    // If an exception is thrown before calling CommitAsync, the transaction aborts, all changes are 
-                    // discarded, and nothing is saved to the secondary replicas.
-                    await tx.CommitAsync();
-                }
-
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-            }
+            //    await tx.CommitAsync();
+            //}
         }
     }
 }
