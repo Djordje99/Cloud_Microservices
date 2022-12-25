@@ -15,6 +15,6 @@ namespace Common.Interfaces
         Task<bool> Register(UserDict user);
 
         [OperationContract]
-        Task LogIn(string username, string password);
+        Task<bool> LogIn(string username, string password);
     }
 }

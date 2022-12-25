@@ -1,0 +1,54 @@
+﻿@model Common.DTO.Departure
+
+@{
+    ViewData["Title"] = "CreateDeparture";
+}
+
+<h2>Create Departure</h2>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="CreateDeaprture">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="TransportType" class="control-label"></label>
+                @Html.DropDownListFor(model => model.TransportType, new SelectList(ViewBag.enumList))
+                @Html.ValidationMessageFor(model => model.TransportType)
+                <input asp-for="TransportType" class="form-control" />
+                <span asp-validation-for="TransportType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Price" class="control-label"></label>
+                <input asp-for="Price" class="form-control" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DepartureStart" class="control-label"></label>
+                <input asp-for="DepartureStart" class="form-control" />
+                <span asp-validation-for="DepartureStart" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DepartureReturn" class="control-label"></label>
+                <input asp-for="DepartureReturn" class="form-control" />
+                <span asp-validation-for="DepartureReturn" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DeaprtureTicketCount" class="control-label"></label>
+                <input asp-for="DeaprtureTicketCount" class="form-control" />
+                <span asp-validation-for="DeaprtureTicketCount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -51,7 +51,7 @@ namespace ValidatorStatelessService
             listenerBinding: WcfUtility.CreateTcpListenerBinding(maxMessageSize: 1024 * 1024 * 1024),
             address: new System.ServiceModel.EndpointAddress(url));
 
-            ServiceEventSource.Current.Message("Listener created.");
+            ServiceEventSource.Current.Message("Listener created. On url " + url);
 
             return listenet;
         }

@@ -11,10 +11,6 @@ namespace Common.DTO
     [DataContract]
     public class User : TableEntity
     {
-        static private int instanceCounter = 0;
-
-        [DataMember]
-        public int ID { get; set; }
         [DataMember]
         public string Username { get; set; }
         [DataMember]
@@ -26,12 +22,6 @@ namespace Common.DTO
         [DataMember]
         public int BankAccountID { get; set; }
 
-        public User(string indexNo)
-        {
-            PartitionKey = "User";
-            RowKey = indexNo;
-        }
-
         public User(UserDict user)
         {
             this.PartitionKey = "User";
@@ -41,7 +31,6 @@ namespace Common.DTO
             this.Password = user.Password;
             this.BankAccountID = user.BankAccountID;
             this.PurchaseHistory = user.PurchaseHistory;
-            this.ID = instanceCounter++;
         }
 
         public User() { }

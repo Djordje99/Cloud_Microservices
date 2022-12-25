@@ -12,5 +12,11 @@ namespace Common.Interfaces
     {
         [OperationContract]
         Task ValidateUserRegister(RegisterUser user);
+
+        [OperationContract]
+        Task ValidateUserLogIn(RegisterUser user);
+
+        [OperationContract]
+        Task CreateDeparture(Departure departure);
     }
 }
