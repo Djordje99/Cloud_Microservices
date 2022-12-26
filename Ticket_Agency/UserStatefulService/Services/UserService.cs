@@ -1,7 +1,9 @@
 ﻿using Common.DTO;
 using Common.Interfaces;
+using Microsoft.Azure;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Data.Collections;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
@@ -9,14 +11,14 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using UserStatefulService.TableHelper;
 
 namespace UserStatefulService.Services
 {
     public class UserService : IUserService
     {
+        private CloudStorageAccount _storageAccount;
+        private CloudTable _table;
         private IReliableStateManager _stateManager;
-        private UserTableHelper _tableHelper;
         private CancellationToken _cancellationToken;
         private Thread _tableThread;
         private long _dictCounter;
@@ -24,8 +26,12 @@ namespace UserStatefulService.Services
 
         public UserService(IReliableStateManager stateManager)
         {
+            _storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("ConnectionString"));
+            CloudTableClient tableClient = new CloudTableClient(new Uri(_storageAccount.TableEndpoint.AbsoluteUri), _storageAccount.Credentials);
+            this._table = tableClient.GetTableReference("User");
+            this._table.CreateIfNotExists();
+
             this._stateManager = stateManager;
-            this._tableHelper = new UserTableHelper("UserTable");
             this._cancellationToken.ThrowIfCancellationRequested();
             this._dictCounter = 0;
             this._tableThread = new Thread(new ThreadStart(TableWriteThread));
@@ -62,7 +68,7 @@ namespace UserStatefulService.Services
             bool status = false;
 
             TableOperation retrieveOperation = TableOperation.Retrieve<User>("User", user.Username);
-            TableResult result = this._tableHelper.Table.Execute(retrieveOperation);
+            TableResult result = this._table.Execute(retrieveOperation);
 
             if (result.Result != null)
                 return false;
@@ -86,7 +92,7 @@ namespace UserStatefulService.Services
             {
                 TableQuery<User> query = new TableQuery<User>();
 
-                foreach (User user in this._tableHelper.Table.ExecuteQuery(query))
+                foreach (User user in this._table.ExecuteQuery(query))
                 {
                     await this.userDict.AddAsync(tx, user.Username, new UserDict(user));
                 }
@@ -126,7 +132,7 @@ namespace UserStatefulService.Services
 
                             TableOperation insertOperation = TableOperation.InsertOrReplace(new User(user));
 
-                            await this._tableHelper.Table.ExecuteAsync(insertOperation);
+                            await this._table.ExecuteAsync(insertOperation);
                         }
 
                         this._dictCounter = currentDictCount;

@@ -15,7 +15,6 @@
                 <label asp-for="TransportType" class="control-label"></label>
                 @Html.DropDownListFor(model => model.TransportType, new SelectList(ViewBag.enumList))
                 @Html.ValidationMessageFor(model => model.TransportType)
-                <input asp-for="TransportType" class="form-control" />
                 <span asp-validation-for="TransportType" class="text-danger"></span>
             </div>
             <div class="form-group">

@@ -14,7 +14,7 @@ namespace Common.DTO
     public class DepartureTableEntity : TableEntity
     {
         [DataMember]
-        public int ID { get; set; }
+        public long ID { get; set; }
         [DataMember]
         public TransportType TransportType { get; set; }
         [DataMember]
@@ -29,6 +29,20 @@ namespace Common.DTO
         public int DepartureAvaiableTicketCount { get; set; }
 
         public DepartureTableEntity() { }
+
+        public DepartureTableEntity(Departure departure)
+        {
+            this.PartitionKey = "Departure";
+            this.RowKey = DateTime.Now.ToString("yyyyMMddHHmmssffff");
+            this.ID = Int64.Parse(this.RowKey);
+            this.TransportType = departure.TransportType;
+            this.Price = departure.Price;
+            this.DepartureStart = departure.DepartureStart;
+            this.DepartureReturn = departure.DepartureReturn;
+            this.DepartureAvaiableTicketCount = departure.DepartureAvaiableTicketCount;
+            this.DeaprtureTicketCount = departure.DeaprtureTicketCount;
+
+        }
 
     }
 }

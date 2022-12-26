@@ -10,7 +10,7 @@ namespace Common.DTO
 {
     public class Departure
     {
-        public int ID { get; set; }
+        public long ID { get; set; }
         [Required]
         public TransportType TransportType { get; set; }
         [Required]
