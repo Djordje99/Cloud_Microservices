@@ -73,6 +73,29 @@ namespace ValidatorStatelessService.Services
             }
         }
 
+        public async Task<List<Departure>> ListDeparture()
+        {
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:20015/DepartureService");
+            List<Departure> departureList = new List<Departure>();
+
+            using (var channelFactory = new ChannelFactory<IDepartureService>(binding, endpointAddress))
+            {
+                IDepartureService departureService = null;
+                try
+                {
+                    departureService = channelFactory.CreateChannel();
+                    departureList = await departureService.ListDeparture();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            return departureList;
+        }
+
         public async Task ValidateUserLogIn(RegisterUser user)
         {
             bool isLoged = false;

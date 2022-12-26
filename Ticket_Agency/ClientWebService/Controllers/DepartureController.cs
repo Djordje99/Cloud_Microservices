@@ -49,5 +49,28 @@ namespace ClientWebService.Controllers
 
             return Redirect("/");
         }
+
+        public async Task<IActionResult> ListDeparture()
+        {
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:19999/WebCommunication");
+            List<Departure> departureLis = new List<Departure>();
+
+            using (var channelFactory = new ChannelFactory<IValidatorService>(binding, endpointAddress))
+            {
+                IValidatorService validator = null;
+                try
+                {
+                    validator = channelFactory.CreateChannel();
+                    departureLis = await validator.ListDeparture();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            return View(departureLis);
+        }
     }
 }

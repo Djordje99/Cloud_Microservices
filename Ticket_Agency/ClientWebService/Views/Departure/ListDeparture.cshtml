@@ -1,0 +1,62 @@
+﻿@model IEnumerable<Common.DTO.Departure>
+
+@{
+    ViewData["Title"] = "Departure List";
+}
+
+<h2>Departure List</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.TransportType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Price)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DepartureStart)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DepartureReturn)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DeaprtureTicketCount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DepartureAvaiableTicketCount)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.TransportType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Price)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DepartureStart)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DepartureReturn)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DeaprtureTicketCount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DepartureAvaiableTicketCount)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
+                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
+                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

@@ -13,5 +13,8 @@ namespace Common.Interfaces
     {
         [OperationContract]
         Task<bool> CreateDeparture(Departure departure);
+
+        [OperationContract]
+        Task<List<Departure>> ListDeparture();
     }
 }

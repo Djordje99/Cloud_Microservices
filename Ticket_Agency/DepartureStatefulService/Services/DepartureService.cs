@@ -44,5 +44,20 @@ namespace DepartureStatefulService.Services
 
             return true;
         }
+
+        public async Task<List<Departure>> ListDeparture()
+        {
+            List<Departure> departureList = new List<Departure>();
+
+            TableQuery<DepartureTableEntity> query = new TableQuery<DepartureTableEntity>();
+
+            foreach (DepartureTableEntity entity in this._table.ExecuteQuery(query))
+            {
+                //only dates less than now
+                departureList.Add(new Departure(entity));
+            }
+
+            return departureList;
+        }
     }
 }
