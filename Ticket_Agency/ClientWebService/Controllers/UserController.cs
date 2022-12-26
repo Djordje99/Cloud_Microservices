@@ -37,6 +37,8 @@ namespace ClientWebService.Controllers
                 {
                     validator = channelFactory.CreateChannel();
                     await validator.ValidateUserLogIn(user);
+                    //TODO: get value from pub sub and set session
+                    HttpContext.Session.SetString("Logged", user.Username);
 
                 }
                 catch (Exception ex)
@@ -45,7 +47,7 @@ namespace ClientWebService.Controllers
                 }
             }
 
-            //wait for pab sub to get status of registration
+            //TODO: wait for pab sub to get status of registration
 
             return Redirect("/");
         }
@@ -76,7 +78,7 @@ namespace ClientWebService.Controllers
                 }
             }
 
-            //wait for pab sub to get status of registration
+            //TODO: wait for pab sub to get status of registration
 
             return Redirect("/");
         }

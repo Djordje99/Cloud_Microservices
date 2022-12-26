@@ -31,7 +31,8 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+    @foreach (var item in Model)
+    {
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.TransportType)
@@ -51,12 +52,21 @@
             <td>
                 @Html.DisplayFor(modelItem => item.DepartureAvaiableTicketCount)
             </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-            </td>
+
+            @if (ViewBag.logged != null)
+            {
+                @using (Html.BeginForm("BuyDepertureTicket", "Departure", FormMethod.Post))
+                {
+                    <td>
+                        <input type="hidden" value="@item.ID" name="id" />
+                        <input type="number" value="0" name="amount" class="form-control" />
+                    </td>
+                    <td>
+                        <input type="submit" value="Buy" class="btn btn-default" />
+                    </td>
+                }
+            }
         </tr>
-}
+    }
     </tbody>
 </table>

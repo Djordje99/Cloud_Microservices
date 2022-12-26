@@ -30,6 +30,11 @@ namespace ClientWebService
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            //In-Memory
+            services.AddDistributedMemoryCache();
+            services.AddSession(options => {
+                options.IdleTimeout = TimeSpan.FromMinutes(20);
+            });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
@@ -48,6 +53,8 @@ namespace ClientWebService
 
             app.UseStaticFiles();
             app.UseCookiePolicy();
+
+            app.UseSession();
 
             app.UseMvc(routes =>
             {

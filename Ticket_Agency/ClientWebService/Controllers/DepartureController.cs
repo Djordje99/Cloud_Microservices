@@ -52,6 +52,9 @@ namespace ClientWebService.Controllers
 
         public async Task<IActionResult> ListDeparture()
         {
+            ViewBag.logged = HttpContext.Session.GetString("Logged");
+
+
             var binding = new NetTcpBinding(SecurityMode.None);
             var endpointAddress = new EndpointAddress("net.tcp://localhost:19999/WebCommunication");
             List<Departure> departureLis = new List<Departure>();
@@ -71,6 +74,13 @@ namespace ClientWebService.Controllers
             }
 
             return View(departureLis);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BuyDepertureTicket(long id, int amount)
+        {
+
+            return Redirect("/");
         }
     }
 }
