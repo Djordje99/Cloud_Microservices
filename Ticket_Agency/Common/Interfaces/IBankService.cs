@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common.DTO;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.ServiceModel;
@@ -11,6 +12,6 @@ namespace Common.Interfaces
     public interface IBankService
     {
         [OperationContract]
-        double CheckBankAccountStatus(int bankAccountID);
+        Task<bool> CreateBankAccount(BankAccount account);
     }
 }

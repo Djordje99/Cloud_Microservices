@@ -13,6 +13,34 @@ namespace ValidatorStatelessService.Services
 {
     public class ValidatorService : IValidatorService
     {
+        public async Task CreateBankAccount(BankAccount account)
+        {
+            bool isCreated = false;
+
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:20025/BankService");
+
+            using (var channelFactory = new ChannelFactory<IBankService>(binding, endpointAddress))
+            {
+                IBankService bankService = null;
+                try
+                {
+                    bankService = channelFactory.CreateChannel();
+                    isCreated = await bankService.CreateBankAccount(account);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            if (isCreated)
+            {
+                //include pub sub 
+                Console.WriteLine(isCreated);
+            }
+        }
+
         public async Task CreateDeparture(Departure departure)
         {
             //validate deaprture

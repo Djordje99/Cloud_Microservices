@@ -18,5 +18,8 @@ namespace Common.Interfaces
 
         [OperationContract]
         Task CreateDeparture(Departure departure);
+
+        [OperationContract]
+        Task CreateBankAccount(BankAccount account);
     }
 }
