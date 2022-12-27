@@ -1,4 +1,5 @@
 ﻿using Common.DTO;
+using Microsoft.ServiceFabric.Data.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,5 +17,14 @@ namespace Common.Interfaces
 
         [OperationContract]
         Task<List<Departure>> ListDeparture();
+
+        [OperationContract]
+        Task<bool> EnlistTicketPurchase(long departureId, int ticketAmount);
+
+        [OperationContract]
+        Task<double> GetPrice(long departureId, int ticketAmount);
+
+        [OperationContract]
+        Task SetDictionary();
     }
 }

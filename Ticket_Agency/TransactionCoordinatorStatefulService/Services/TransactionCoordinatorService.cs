@@ -7,6 +7,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.ServiceModel;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +39,51 @@ namespace TransactionCoordinatorStatefulService.Services
 
         public async Task<bool> BuyDepertureTicket(string username, long departureId, int ticketAmount)
         {
-            return true;
+            bool isBought = false;
+
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddressBank = new EndpointAddress("net.tcp://localhost:20025/BankService");
+            var endpointAddressDeparture = new EndpointAddress("net.tcp://localhost:20015/DepartureService");
+
+            using (var channelFactoryBank = new ChannelFactory<IBankService>(binding, endpointAddressBank))
+            {
+                IBankService bank = null;
+                using (var channelFactoryDeparture = new ChannelFactory<IDepartureService>(binding, endpointAddressDeparture))
+                {
+                    IDepartureService departure = null;
+                    try
+                    {
+                        departure = channelFactoryDeparture.CreateChannel();
+                        bank = channelFactoryBank.CreateChannel();
+
+                        var departureResult = await departure.EnlistTicketPurchase(departureId, ticketAmount);
+
+                        var price = await departure.GetPrice(departureId, ticketAmount);
+
+                        var bankResult = await bank.EnlistMoneyTransfer(username, price);
+
+                        if (departureResult && bankResult)
+                        {
+                            await departure.Commit();
+                            await bank.Commit();
+                            isBought = true;
+                        }
+                        else
+                        {
+                            await departure.Rollback();
+                            await bank.Rollback();
+                            isBought = false;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        isBought = false;
+                    }
+                }
+            }
+
+            return isBought;
         }
     }
 }

@@ -13,5 +13,11 @@ namespace Common.Interfaces
     {
         [OperationContract]
         Task<bool> CreateBankAccount(BankAccount account);
+
+        [OperationContract]
+        Task<bool> EnlistMoneyTransfer(string username, double price);
+
+        [OperationContract]
+        Task SetDictionary();
     }
 }

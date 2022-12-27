@@ -11,6 +11,8 @@ namespace Common.DTO
     {
         public long ID { get; set; }
         [Required]
+        public string OwnerUsername { get; set; }
+        [Required]
         [StringLength(16, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 16)]
         public string AccountNumber { get; set; }
         [Required]
@@ -18,6 +20,12 @@ namespace Common.DTO
 
         public BankAccount() { }
 
-
+        public BankAccount(BankAccountTableEntity account)
+        {
+            this.ID = account.ID;
+            this.AccountNumber = account.AccountNumber;
+            this.AvailableAssets = account.AvailableAssets;
+            this.OwnerUsername = this.OwnerUsername;
+        }
     }
 }

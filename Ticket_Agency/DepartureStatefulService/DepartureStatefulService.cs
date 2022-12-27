@@ -1,4 +1,5 @@
-﻿using Common.Interfaces;
+﻿using Common.DTO;
+using Common.Interfaces;
 using DepartureStatefulService.Services;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
@@ -10,6 +11,7 @@ using System.Collections.Generic;
 using System.Fabric;
 using System.Globalization;
 using System.Linq;
+using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -66,10 +68,22 @@ namespace DepartureStatefulService
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service replica.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            // TODO: Replace the following sample code with your own logic 
-            //       or remove this RunAsync override if it's not needed in your service.
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:20015/DepartureService");
 
-           
+            using (var channelFactory = new ChannelFactory<IDepartureService>(binding, endpointAddress))
+            {
+                IDepartureService departureService = null;
+                try
+                {
+                    departureService = channelFactory.CreateChannel();
+                    await departureService.SetDictionary();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
         }
     }
 }
