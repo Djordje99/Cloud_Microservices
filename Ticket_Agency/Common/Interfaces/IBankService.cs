@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Common.Interfaces
 {
     [ServiceContract]
-    public interface IBankService
+    public interface IBankService : ITransactionService
     {
         [OperationContract]
         Task<bool> CreateBankAccount(BankAccount account);

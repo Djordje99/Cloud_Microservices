@@ -37,13 +37,28 @@ namespace UserStatefulService.Services
             this._tableThread = new Thread(new ThreadStart(TableWriteThread));
         }
 
+        public Task Commit()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> Prepare()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Rollback()
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<bool> LogIn(string username, string password)
         {
             StartThread();
 
             bool status = false;
 
-            using (ITransaction tx = this._stateManager.CreateTransaction())
+            using (var tx = this._stateManager.CreateTransaction())
             {
                 bool isExists = await this.userDict.ContainsKeyAsync(tx, username);
 
@@ -55,7 +70,7 @@ namespace UserStatefulService.Services
                         status = true;
                 }
 
-                await tx.CommitAsync(); 
+                await tx.CommitAsync();
             }
 
             return status;
@@ -88,7 +103,7 @@ namespace UserStatefulService.Services
         {
             this.userDict = await this._stateManager.GetOrAddAsync<IReliableDictionary<string, UserDict>>("User");
 
-            using (ITransaction tx = this._stateManager.CreateTransaction())
+            using (var tx = this._stateManager.CreateTransaction())
             {
                 TableQuery<User> query = new TableQuery<User>();
 

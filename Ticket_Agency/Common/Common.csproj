@@ -67,8 +67,8 @@
     <Compile Include="Enums\TransportType.cs" />
     <Compile Include="Interfaces\IBankService.cs" />
     <Compile Include="Interfaces\IDepartureService.cs" />
-    <Compile Include="Interfaces\ITransactionCordinatorService.cs" />
     <Compile Include="Interfaces\ITransactionService.cs" />
+    <Compile Include="Interfaces\ITransactionCordinatorService.cs" />
     <Compile Include="Interfaces\IUserService.cs" />
     <Compile Include="Interfaces\IValidatorService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

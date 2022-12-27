@@ -10,5 +10,7 @@ namespace Common.Interfaces
     [ServiceContract]
     public interface ITransactionCordinatorService
     {
+        [OperationContract]
+        Task<bool> BuyDepertureTicket(string username, long departureId, int ticketAmount);
     }
 }

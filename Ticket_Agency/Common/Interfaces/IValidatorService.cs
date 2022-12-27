@@ -24,5 +24,8 @@ namespace Common.Interfaces
 
         [OperationContract]
         Task CreateBankAccount(BankAccount account);
+
+        [OperationContract]
+        Task BuyDepertureTicket(string username, long departureId, int ticketAmount);
     }
 }

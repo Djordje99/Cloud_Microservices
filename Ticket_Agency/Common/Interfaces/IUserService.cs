@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Common.Interfaces
 {
     [ServiceContract]
-    public interface IUserService
+    public interface IUserService : ITransactionService
     {
         [OperationContract]
         Task<bool> Register(UserDict user);

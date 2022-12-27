@@ -37,6 +37,21 @@ namespace DepartureStatefulService.Services
             //this._tableThread = new Thread(new ThreadStart(TableWriteThread));
         }
 
+        public Task<bool> Prepare()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Commit()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Rollback()
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<bool> CreateDeparture(Departure departure)
         {
             TableOperation retrieveOperation = TableOperation.InsertOrReplace(new DepartureTableEntity(departure));

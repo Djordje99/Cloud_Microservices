@@ -79,6 +79,27 @@ namespace ClientWebService.Controllers
         [HttpPost]
         public async Task<IActionResult> BuyDepertureTicket(long id, int amount)
         {
+            var username = HttpContext.Session.GetString("Logged");
+
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:19999/WebCommunication");
+            List<Departure> departureLis = new List<Departure>();
+
+            using (var channelFactory = new ChannelFactory<IValidatorService>(binding, endpointAddress))
+            {
+                IValidatorService validator = null;
+                try
+                {
+                    validator = channelFactory.CreateChannel();
+                    await validator.BuyDepertureTicket(username, id, amount);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            //get from pub sub
 
             return Redirect("/");
         }

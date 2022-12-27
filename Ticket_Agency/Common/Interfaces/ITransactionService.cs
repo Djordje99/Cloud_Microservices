@@ -10,5 +10,13 @@ namespace Common.Interfaces
     [ServiceContract]
     public interface ITransactionService
     {
+        [OperationContract]
+        Task<bool> Prepare();
+
+        [OperationContract]
+        Task Commit();
+
+        [OperationContract]
+        Task Rollback();
     }
 }

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Common.Interfaces
 {
     [ServiceContract]
-    public interface IDepartureService
+    public interface IDepartureService : ITransactionService
     {
         [OperationContract]
         Task<bool> CreateDeparture(Departure departure);

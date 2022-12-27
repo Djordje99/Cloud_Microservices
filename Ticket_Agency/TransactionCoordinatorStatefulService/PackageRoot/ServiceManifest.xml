@@ -34,6 +34,7 @@
            This endpoint is configured through a ReplicatorSettings config section in the Settings.xml
            file under the ConfigPackage. -->
       <Endpoint Name="ReplicatorEndpoint" />
+      <Endpoint Protocol="tcp" Name="TransactionCordinatorService" Port="20035" />
     </Endpoints>
   </Resources>
 </ServiceManifest>

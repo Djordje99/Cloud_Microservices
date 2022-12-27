@@ -13,6 +13,34 @@ namespace ValidatorStatelessService.Services
 {
     public class ValidatorService : IValidatorService
     {
+        public async Task BuyDepertureTicket(string username, long departureId, int ticketAmount)
+        {
+            bool isBought = false;
+
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:20035/TransactionCordinatorService");
+
+            using (var channelFactory = new ChannelFactory<ITransactionCordinatorService>(binding, endpointAddress))
+            {
+                ITransactionCordinatorService transactionService = null;
+                try
+                {
+                    transactionService = channelFactory.CreateChannel();
+                    isBought = await transactionService.BuyDepertureTicket(username, departureId, ticketAmount);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            if (isBought)
+            {
+                //include pub sub 
+                Console.WriteLine(isBought);
+            }
+        }
+
         public async Task CreateBankAccount(BankAccount account)
         {
             bool isCreated = false;
