@@ -1,4 +1,5 @@
-﻿using Common.Interfaces;
+﻿using Common.DTO;
+using Common.Interfaces;
 using Microsoft.Azure;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Data.Collections;
@@ -22,7 +23,7 @@ namespace TransactionCoordinatorStatefulService.Services
         private CancellationToken _cancellationToken;
         private Thread _tableThread;
         private long _dictCounter;
-        //private IReliableDictionary<string, UserDict> userDict;
+        private IReliableDictionary<long, Purchase> purchaseDictionary;
 
         public TransactionCoordinatorService(IReliableStateManager stateManager)
         {
@@ -34,7 +35,14 @@ namespace TransactionCoordinatorStatefulService.Services
             this._stateManager = stateManager;
             this._cancellationToken.ThrowIfCancellationRequested();
             this._dictCounter = 0;
-            //this._tableThread = new Thread(new ThreadStart(TableWriteThread));
+            this._tableThread = new Thread(new ThreadStart(TableWriteThread));
+        }
+
+        public async Task SetDictionary()
+        {
+            this.purchaseDictionary = await this._stateManager.GetOrAddAsync<IReliableDictionary<long, Purchase>>("Purchase"); ;
+
+            StartThread();
         }
 
         public async Task<bool> BuyDepertureTicket(string username, long departureId, int ticketAmount)
@@ -65,7 +73,7 @@ namespace TransactionCoordinatorStatefulService.Services
 
                             var departureResult = await departure.EnlistTicketPurchase(departureId, ticketAmount);
 
-                            var price = await departure.GetPrice(departureId, ticketAmount);//TODO
+                            var price = await departure.GetPrice();
 
                             var bankResult = await bank.EnlistMoneyTransfer(accountNumber, price);
 
@@ -73,6 +81,11 @@ namespace TransactionCoordinatorStatefulService.Services
                             {
                                 await departure.Commit();
                                 await bank.Commit();
+
+                                var purchaseID = await SavePurchaseToDictionary(departureId, ticketAmount);
+
+                                await user.SetPurchaseToUser(username, purchaseID);
+
                                 isBought = true;
                             }
                             else
@@ -85,6 +98,8 @@ namespace TransactionCoordinatorStatefulService.Services
                         catch (Exception ex)
                         {
                             Console.WriteLine(ex.Message);
+                            await departure.Rollback();
+                            await bank.Rollback();
                             isBought = false;
                         }
                     }
@@ -92,6 +107,67 @@ namespace TransactionCoordinatorStatefulService.Services
             }
 
             return isBought;
+        }
+
+        private async Task<long> SavePurchaseToDictionary(long departureId, int ticketAmount)
+        {
+            var purchase = new Purchase()
+            {
+                DepartureID = departureId,
+                ID = Int64.Parse(DateTime.Now.ToString("yyyyMMddHHmmssffff")),
+                TicketPurchaseCount = ticketAmount
+            };
+
+            using (var tx = this._stateManager.CreateTransaction())
+            {
+                await this.purchaseDictionary.AddAsync(tx, purchase.ID, purchase);
+                await tx.CommitAsync();
+            }
+
+            return purchase.ID;
+        }
+
+
+        private async void LoadTableData()
+        {
+            using (var tx = this._stateManager.CreateTransaction())
+            {
+                TableQuery<PurchaseTableEntity> query = new TableQuery<PurchaseTableEntity>();
+
+                foreach (PurchaseTableEntity purchase in this._table.ExecuteQuery(query))
+                {
+                    await this.purchaseDictionary.AddAsync(tx, purchase.ID, new Purchase(purchase));
+                }
+
+                await tx.CommitAsync();
+            }
+        }
+
+        private void StartThread()
+        {
+            LoadTableData();
+            this._tableThread.Start();
+        }
+
+        private async void TableWriteThread()
+        {
+            while (true)
+            {
+                using (var tx = this._stateManager.CreateTransaction())
+                {
+                    var enumerator = (await this.purchaseDictionary.CreateEnumerableAsync(tx)).GetAsyncEnumerator();
+
+                    while (await enumerator.MoveNextAsync(this._cancellationToken))
+                    {
+                        Purchase purchase = enumerator.Current.Value;
+
+                        TableOperation insertOperation = TableOperation.InsertOrReplace(new PurchaseTableEntity(purchase));
+                        await this._table.ExecuteAsync(insertOperation);
+                    }
+                }
+
+                Thread.Sleep(5000);
+            }
         }
     }
 }

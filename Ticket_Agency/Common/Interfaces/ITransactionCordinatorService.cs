@@ -12,5 +12,8 @@ namespace Common.Interfaces
     {
         [OperationContract]
         Task<bool> BuyDepertureTicket(string username, long departureId, int ticketAmount);
+
+        [OperationContract]
+        Task SetDictionary();
     }
 }

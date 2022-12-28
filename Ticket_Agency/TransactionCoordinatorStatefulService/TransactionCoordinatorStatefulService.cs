@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Fabric;
 using System.Globalization;
 using System.Linq;
+using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 using TransactionCoordinatorStatefulService.Services;
@@ -67,8 +68,22 @@ namespace TransactionCoordinatorStatefulService
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service replica.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            // TODO: Replace the following sample code with your own logic 
-            //       or remove this RunAsync override if it's not needed in your service.
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:20035/TransactionCordinatorService");
+
+            using (var channelFactory = new ChannelFactory<ITransactionCordinatorService>(binding, endpointAddress))
+            {
+                ITransactionCordinatorService transactionService = null;
+                try
+                {
+                    transactionService = channelFactory.CreateChannel();
+                    await transactionService.SetDictionary();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
         }
     }
 }

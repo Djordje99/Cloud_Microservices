@@ -42,6 +42,23 @@ namespace UserStatefulService.Services
             StartThread();
         }
 
+        public async Task SetPurchaseToUser(string username, long purchaseID)
+        {
+            using(var tx = this._stateManager.CreateTransaction())
+            {
+                var user = await this.userDictionary.TryGetValueAsync(tx, username);
+
+                if (user.Value.PurchaseHistory == null)
+                    user.Value.PurchaseHistory = new List<long>() { purchaseID };
+                else
+                    user.Value.PurchaseHistory.Add(purchaseID);
+
+                await this.userDictionary.AddOrUpdateAsync(tx, username, user.Value, (key, value) => value);
+
+                await tx.CommitAsync();
+            }
+        }
+
         public async Task<bool> LogIn(string username, string password)
         {
             bool status = false;
@@ -105,8 +122,6 @@ namespace UserStatefulService.Services
                 {
                     await this.userDictionary.AddAsync(tx, userTable.Username, new User(userTable));
                 }
-
-                long currentDictCount = await userDictionary.GetCountAsync(tx);
 
                 await tx.CommitAsync();
             }

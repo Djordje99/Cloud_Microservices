@@ -45,9 +45,22 @@ namespace DepartureStatefulService.Services
             StartThread();
         }
 
-        public async Task<double> GetPrice(long departureId, int ticketAmount)
+        public async Task<double> GetPrice()
         {
-            return 1;
+            double price = 0;
+
+            try
+            {
+                var departure = await this._departureDictionary.TryGetValueAsync(this._transaction, this._localId);
+
+                price = departure.Value.Price * this._localTickeAmount;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return price;
         }
 
         public async Task<bool> EnlistTicketPurchase(long departureId, int ticketAmount)

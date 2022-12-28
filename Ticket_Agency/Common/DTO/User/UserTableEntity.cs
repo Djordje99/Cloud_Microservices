@@ -18,7 +18,7 @@ namespace Common.DTO
         [DataMember]
         public string Password { get; set; }
         [DataMember]
-        public List<int> PurchaseHistory { get; set; }
+        public List<long> PurchaseHistory { get; set; }
         [DataMember]
         public long AccountNumber { get; set; }
 
@@ -30,7 +30,11 @@ namespace Common.DTO
             this.Email = user.Email;
             this.Password = user.Password;
             this.AccountNumber = user.AccountNumber;
-            this.PurchaseHistory = user.PurchaseHistory;
+
+            if (user.PurchaseHistory == null)
+                this.PurchaseHistory = new List<long>();
+            else
+                this.PurchaseHistory = user.PurchaseHistory;
         }
 
         public UserTableEntity() { }

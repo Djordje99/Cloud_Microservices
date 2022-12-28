@@ -22,7 +22,7 @@ namespace Common.Interfaces
         Task<bool> EnlistTicketPurchase(long departureId, int ticketAmount);
 
         [OperationContract]
-        Task<double> GetPrice(long departureId, int ticketAmount);
+        Task<double> GetPrice();
 
         [OperationContract]
         Task SetDictionary();

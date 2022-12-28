@@ -97,7 +97,8 @@
     <Compile Include="DTO\Bank\BankAccountTableEntity.cs" />
     <Compile Include="DTO\Departure\Departure.cs" />
     <Compile Include="DTO\Departure\DepartureTableEntity.cs" />
-    <Compile Include="DTO\Purchase.cs" />
+    <Compile Include="DTO\Purchase\Purchase.cs" />
+    <Compile Include="DTO\Purchase\PurchaseTableEntity.cs" />
     <Compile Include="DTO\User\LogInUser.cs" />
     <Compile Include="DTO\User\RegisterUser.cs" />
     <Compile Include="DTO\User\User.cs" />

@@ -22,5 +22,8 @@ namespace Common.Interfaces
 
         [OperationContract]
         Task SetDictionary();
+
+        [OperationContract]
+        Task SetPurchaseToUser(string username, long purchaseID);
     }
 }
