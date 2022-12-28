@@ -1,14 +1,15 @@
-﻿using System;
+﻿using Microsoft.WindowsAzure.Storage.Table;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Common.DTO
 {
     [DataContract]
-    public class User
+    public class UserTableEntity : TableEntity
     {
         [DataMember]
         public string Username { get; set; }
@@ -17,14 +18,14 @@ namespace Common.DTO
         [DataMember]
         public string Password { get; set; }
         [DataMember]
-        public long AccountNumber { get; set; }
-        [DataMember]
         public List<int> PurchaseHistory { get; set; }
+        [DataMember]
+        public long AccountNumber { get; set; }
 
-        public User() { }
-
-        public User(UserTableEntity user)
+        public UserTableEntity(User user)
         {
+            this.PartitionKey = "User";
+            this.RowKey = user.Username;
             this.Username = user.Username;
             this.Email = user.Email;
             this.Password = user.Password;
@@ -32,13 +33,6 @@ namespace Common.DTO
             this.PurchaseHistory = user.PurchaseHistory;
         }
 
-        public User(RegisterUser user)
-        {
-            this.Username = user.Username;
-            this.Email = user.Email;
-            this.Password = user.Password;
-            this.AccountNumber = user.AccountNumber;
-            this.PurchaseHistory = new List<int>();
-        }
+        public UserTableEntity() { }
     }
 }

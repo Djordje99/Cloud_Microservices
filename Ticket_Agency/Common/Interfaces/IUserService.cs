@@ -9,12 +9,18 @@ using System.Threading.Tasks;
 namespace Common.Interfaces
 {
     [ServiceContract]
-    public interface IUserService : ITransactionService
+    public interface IUserService
     {
         [OperationContract]
-        Task<bool> Register(UserDict user);
+        Task<bool> Register(RegisterUser user);
 
         [OperationContract]
         Task<bool> LogIn(string username, string password);
+
+        [OperationContract]
+        Task<long> GetUsersBankAcount(string username);
+
+        [OperationContract]
+        Task SetDictionary();
     }
 }

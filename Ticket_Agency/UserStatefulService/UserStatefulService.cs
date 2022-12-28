@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Fabric;
 using System.Globalization;
 using System.Linq;
+using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 using UserStatefulService.Services;
@@ -68,16 +69,22 @@ namespace UserStatefulService
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service replica.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            var userDict = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, UserDict>>("User");
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:20001/UserService");
 
-            //using (var tx = this.StateManager.CreateTransaction())
-            //{
-            //    await bankDict.AddOrUpdateAsync(tx, 0, 1000, (key, value) => value);
-            //    await bankDict.AddOrUpdateAsync(tx, 1, 1000, (key, value) => value);
-            //    await bankDict.AddOrUpdateAsync(tx, 2, 1000, (key, value) => value);
-
-            //    await tx.CommitAsync();
-            //}
+            using (var channelFactory = new ChannelFactory<IUserService>(binding, endpointAddress))
+            {
+                IUserService userService = null;
+                try
+                {
+                    userService = channelFactory.CreateChannel();
+                    await userService.SetDictionary();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
         }
     }
 }

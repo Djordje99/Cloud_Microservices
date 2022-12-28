@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ClientWebService.Models
+namespace Common.DTO
 {
     public class LogInUser
     {

@@ -21,8 +21,7 @@ namespace UserStatefulService.Services
         private IReliableStateManager _stateManager;
         private CancellationToken _cancellationToken;
         private Thread _tableThread;
-        private long _dictCounter;
-        private IReliableDictionary<string, UserDict> userDict;
+        private IReliableDictionary<string, User> userDictionary;
 
         public UserService(IReliableStateManager stateManager)
         {
@@ -33,38 +32,27 @@ namespace UserStatefulService.Services
 
             this._stateManager = stateManager;
             this._cancellationToken.ThrowIfCancellationRequested();
-            this._dictCounter = 0;
             this._tableThread = new Thread(new ThreadStart(TableWriteThread));
         }
 
-        public Task Commit()
+        public async Task SetDictionary()
         {
-            throw new NotImplementedException();
-        }
+            this.userDictionary = await this._stateManager.GetOrAddAsync<IReliableDictionary<string, User>>("User"); ;
 
-        public Task<bool> Prepare()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task Rollback()
-        {
-            throw new NotImplementedException();
+            StartThread();
         }
 
         public async Task<bool> LogIn(string username, string password)
         {
-            StartThread();
-
             bool status = false;
 
             using (var tx = this._stateManager.CreateTransaction())
             {
-                bool isExists = await this.userDict.ContainsKeyAsync(tx, username);
+                bool isExists = await this.userDictionary.ContainsKeyAsync(tx, username);
 
                 if (isExists)
                 {
-                    var user = await this.userDict.TryGetValueAsync(tx, username);
+                    var user = await this.userDictionary.TryGetValueAsync(tx, username);
 
                     if (user.Value.Password == password)
                         status = true;
@@ -76,13 +64,11 @@ namespace UserStatefulService.Services
             return status;
         }
 
-        public async Task<bool> Register(UserDict user)
+        public async Task<bool> Register(RegisterUser user)
         {
-            StartThread();
-
             bool status = false;
 
-            TableOperation retrieveOperation = TableOperation.Retrieve<User>("User", user.Username);
+            TableOperation retrieveOperation = TableOperation.Retrieve<UserTableEntity>("User", user.Username);
             TableResult result = this._table.Execute(retrieveOperation);
 
             if (result.Result != null)
@@ -91,7 +77,7 @@ namespace UserStatefulService.Services
 
             using (var tx = this._stateManager.CreateTransaction())
             {
-                await this.userDict.AddAsync(tx, user.Username, user);
+                await this.userDictionary.AddAsync(tx, user.Username, new User(user));
                 await tx.CommitAsync();
                 status = true;
             }
@@ -99,34 +85,37 @@ namespace UserStatefulService.Services
             return status;
         }
 
-        private async void LoadTableData()
+        public async Task<long> GetUsersBankAcount(string username)
         {
-            this.userDict = await this._stateManager.GetOrAddAsync<IReliableDictionary<string, UserDict>>("User");
-
             using (var tx = this._stateManager.CreateTransaction())
             {
-                TableQuery<User> query = new TableQuery<User>();
+                var user = await userDictionary.TryGetValueAsync(tx, username);
 
-                foreach (User user in this._table.ExecuteQuery(query))
+                return user.Value.AccountNumber;
+            }
+        }
+
+        private async void LoadTableData()
+        {
+            using (var tx = this._stateManager.CreateTransaction())
+            {
+                TableQuery<UserTableEntity> query = new TableQuery<UserTableEntity>();
+
+                foreach (UserTableEntity userTable in this._table.ExecuteQuery(query))
                 {
-                    await this.userDict.AddAsync(tx, user.Username, new UserDict(user));
+                    await this.userDictionary.AddAsync(tx, userTable.Username, new User(userTable));
                 }
 
-                long currentDictCount = await userDict.GetCountAsync(tx);
+                long currentDictCount = await userDictionary.GetCountAsync(tx);
 
                 await tx.CommitAsync();
-
-                this._dictCounter = currentDictCount;
             }
         }
 
         private void StartThread()
         {
-            if (this._dictCounter == 0)
-            {
-                LoadTableData();
-                this._tableThread.Start();
-            }
+            LoadTableData();
+            this._tableThread.Start();
         }
 
         private async void TableWriteThread()
@@ -135,22 +124,15 @@ namespace UserStatefulService.Services
             {
                 using (var tx = this._stateManager.CreateTransaction())
                 {
-                    long currentDictCount = await this.userDict.GetCountAsync(tx);
+                    var enumerator = (await this.userDictionary.CreateEnumerableAsync(tx)).GetAsyncEnumerator();
 
-                    if (this._dictCounter != currentDictCount)
+                    while (await enumerator.MoveNextAsync(this._cancellationToken))
                     {
-                        var enumerator = (await this.userDict.CreateEnumerableAsync(tx)).GetAsyncEnumerator();
+                        User user = enumerator.Current.Value;
 
-                        while (await enumerator.MoveNextAsync(this._cancellationToken))
-                        {
-                            UserDict user = enumerator.Current.Value;
+                        TableOperation insertOperation = TableOperation.InsertOrReplace(new UserTableEntity(user));
 
-                            TableOperation insertOperation = TableOperation.InsertOrReplace(new User(user));
-
-                            await this._table.ExecuteAsync(insertOperation);
-                        }
-
-                        this._dictCounter = currentDictCount;
+                        await this._table.ExecuteAsync(insertOperation);
                     }
                 }
 
