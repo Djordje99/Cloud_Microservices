@@ -98,9 +98,10 @@
     <Compile Include="DTO\Departure\Departure.cs" />
     <Compile Include="DTO\Departure\DepartureTableEntity.cs" />
     <Compile Include="DTO\Purchase.cs" />
+    <Compile Include="DTO\User\LogInUser.cs" />
     <Compile Include="DTO\User\RegisterUser.cs" />
     <Compile Include="DTO\User\User.cs" />
-    <Compile Include="DTO\User\UserDict.cs" />
+    <Compile Include="DTO\User\UserTableEntity.cs" />
     <Compile Include="Enums\TransportType.cs" />
     <Compile Include="Interfaces\IBankService.cs" />
     <Compile Include="Interfaces\IDepartureService.cs" />

@@ -12,13 +12,7 @@ namespace Common.DTO
     public class BankAccountTableEntity : TableEntity
     {
         [DataMember]
-        public long ID { get; set; }
-
-        [DataMember]
-        public string OwnerUsername { get; set; }
-
-        [DataMember]
-        public string AccountNumber { get; set; }
+        public long AccountNumber { get; set; }
 
         [DataMember]
         public double AvailableAssets { get; set; }
@@ -27,12 +21,9 @@ namespace Common.DTO
         public BankAccountTableEntity(BankAccount account)
         {
             this.PartitionKey = "BankAccount";
-            this.RowKey = account.OwnerUsername;
-            var id =  DateTime.Now.ToString("yyyyMMddHHmmssffff");
-            this.ID = Int64.Parse(id);
+            this.RowKey = account.AccountNumber.ToString();
             this.AccountNumber = account.AccountNumber;
             this.AvailableAssets = account.AvailableAssets;
-            this.OwnerUsername = account.OwnerUsername;
         }
     }
 }

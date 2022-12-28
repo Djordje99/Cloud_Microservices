@@ -1,4 +1,4 @@
-﻿@model ClientWebService.Models.User
+﻿@model Common.DTO.RegisterUser
 
 @{
     ViewData["Title"] = "Register";
@@ -33,9 +33,9 @@
                 <span asp-validation-for="PasswordRepeat" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="BankAccountID" class="control-label"></label>
-                <input asp-for="BankAccountID" class="form-control" />
-                <span asp-validation-for="BankAccountID" class="text-danger"></span>
+                <label asp-for="AccountNumber" class="control-label"></label>
+                <input asp-for="AccountNumber" class="form-control" />
+                <span asp-validation-for="AccountNumber" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Register" class="btn btn-default" />

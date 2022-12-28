@@ -15,7 +15,7 @@ namespace Common.Interfaces
         Task<bool> CreateBankAccount(BankAccount account);
 
         [OperationContract]
-        Task<bool> EnlistMoneyTransfer(string username, double price);
+        Task<bool> EnlistMoneyTransfer(long accountNumber, double price);
 
         [OperationContract]
         Task SetDictionary();

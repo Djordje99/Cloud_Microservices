@@ -44,6 +44,7 @@ namespace TransactionCoordinatorStatefulService.Services
             var binding = new NetTcpBinding(SecurityMode.None);
             var endpointAddressBank = new EndpointAddress("net.tcp://localhost:20025/BankService");
             var endpointAddressDeparture = new EndpointAddress("net.tcp://localhost:20015/DepartureService");
+            var endpointAddressUser = new EndpointAddress("net.tcp://localhost:20001/UserService");
 
             using (var channelFactoryBank = new ChannelFactory<IBankService>(binding, endpointAddressBank))
             {
@@ -51,34 +52,41 @@ namespace TransactionCoordinatorStatefulService.Services
                 using (var channelFactoryDeparture = new ChannelFactory<IDepartureService>(binding, endpointAddressDeparture))
                 {
                     IDepartureService departure = null;
-                    try
+                    using(var channelFactoryUser = new ChannelFactory<IUserService>(binding, endpointAddressUser))
                     {
-                        departure = channelFactoryDeparture.CreateChannel();
-                        bank = channelFactoryBank.CreateChannel();
-
-                        var departureResult = await departure.EnlistTicketPurchase(departureId, ticketAmount);
-
-                        var price = await departure.GetPrice(departureId, ticketAmount);
-
-                        var bankResult = await bank.EnlistMoneyTransfer(username, price);
-
-                        if (departureResult && bankResult)
+                        IUserService user = null;
+                        try
                         {
-                            await departure.Commit();
-                            await bank.Commit();
-                            isBought = true;
+                            departure = channelFactoryDeparture.CreateChannel();
+                            bank = channelFactoryBank.CreateChannel();
+                            user = channelFactoryUser.CreateChannel();
+
+                            var accountNumber =  await user.GetUsersBankAcount(username);
+
+                            var departureResult = await departure.EnlistTicketPurchase(departureId, ticketAmount);
+
+                            var price = await departure.GetPrice(departureId, ticketAmount);//TODO
+
+                            var bankResult = await bank.EnlistMoneyTransfer(accountNumber, price);
+
+                            if (departureResult && bankResult)
+                            {
+                                await departure.Commit();
+                                await bank.Commit();
+                                isBought = true;
+                            }
+                            else
+                            {
+                                await departure.Rollback();
+                                await bank.Rollback();
+                                isBought = false;
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            await departure.Rollback();
-                            await bank.Rollback();
+                            Console.WriteLine(ex.Message);
                             isBought = false;
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                        isBought = false;
                     }
                 }
             }

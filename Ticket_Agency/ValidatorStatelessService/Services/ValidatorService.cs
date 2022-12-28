@@ -167,7 +167,7 @@ namespace ValidatorStatelessService.Services
                 try
                 {
                     userService = channelFactory.CreateChannel();
-                    isRegistred = await userService.Register(new UserDict(user));
+                    isRegistred = await userService.Register(user);
                 }
                 catch (Exception ex)
                 {

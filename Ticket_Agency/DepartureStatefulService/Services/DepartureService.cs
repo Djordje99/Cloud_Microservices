@@ -21,7 +21,6 @@ namespace DepartureStatefulService.Services
         private IReliableStateManager _stateManager;
         private System.Threading.CancellationToken _cancellationToken;
         private Thread _tableThread;
-        private long _dictCounter;
         private ITransaction _transaction;
         private IReliableDictionary<long, Departure> _departureDictionary;
         private long _localId;
@@ -36,7 +35,6 @@ namespace DepartureStatefulService.Services
 
             this._stateManager = stateManager;
             this._cancellationToken.ThrowIfCancellationRequested();
-            this._dictCounter = 0;
             this._tableThread = new Thread(new ThreadStart(TableWriteThread));
         }
 
@@ -94,6 +92,8 @@ namespace DepartureStatefulService.Services
 
         public async Task<bool> CreateDeparture(Departure departure)
         {
+            departure.ID =  Int64.Parse(DateTime.Now.ToString("yyyyMMddHHmmssffff"));
+
             using (var tx = this._stateManager.CreateTransaction())
             {
                 await this._departureDictionary.AddAsync(tx, departure.ID, departure);
@@ -132,21 +132,14 @@ namespace DepartureStatefulService.Services
                     await this._departureDictionary.AddAsync(tx, departure.ID, new Departure(departure));
                 }
 
-                long currentDictCount = await _departureDictionary.GetCountAsync(tx);
-
                 await tx.CommitAsync();
-
-                this._dictCounter = currentDictCount;
             }
         }
 
         private void StartThread()
         {
-            if (this._dictCounter == 0)
-            {
-                LoadTableData();
-                this._tableThread.Start();
-            }
+            LoadTableData();
+            this._tableThread.Start();
         }
 
         private async void TableWriteThread()
@@ -155,22 +148,15 @@ namespace DepartureStatefulService.Services
             {
                 using (var tx = this._stateManager.CreateTransaction())
                 {
-                    long currentDictCount = await this._departureDictionary.GetCountAsync(tx);
+                    var enumerator = (await this._departureDictionary.CreateEnumerableAsync(tx)).GetAsyncEnumerator();
 
-                    if (this._dictCounter != currentDictCount)
+                    while (await enumerator.MoveNextAsync(this._cancellationToken))
                     {
-                        var enumerator = (await this._departureDictionary.CreateEnumerableAsync(tx)).GetAsyncEnumerator();
+                        Departure departure = enumerator.Current.Value;
 
-                        while (await enumerator.MoveNextAsync(this._cancellationToken))
-                        {
-                            Departure departure = enumerator.Current.Value;
+                        TableOperation insertOperation = TableOperation.InsertOrReplace(new DepartureTableEntity(departure));
 
-                            TableOperation insertOperation = TableOperation.InsertOrReplace(new DepartureTableEntity(departure));
-
-                            await this._table.ExecuteAsync(insertOperation);
-                        }
-
-                        this._dictCounter = currentDictCount;
+                        await this._table.ExecuteAsync(insertOperation);
                     }
                 }
 

@@ -16,6 +16,8 @@ namespace Common.DTO
         [DataMember]
         public long ID { get; set; }
         [DataMember]
+        public string CityName { get; set; }
+        [DataMember]
         public TransportType TransportType { get; set; }
         [DataMember]
         public double Price { get; set; }
@@ -33,8 +35,8 @@ namespace Common.DTO
         public DepartureTableEntity(Departure departure)
         {
             this.PartitionKey = "Departure";
-            this.RowKey = DateTime.Now.ToString("yyyyMMddHHmmssffff");
-            this.ID = Int64.Parse(this.RowKey);
+            this.RowKey = departure.ID.ToString();
+            this.ID = departure.ID;
             this.TransportType = departure.TransportType;
             this.Price = departure.Price;
             this.DepartureStart = departure.DepartureStart;

@@ -21,11 +21,10 @@ namespace BankStatefulService.Services
         private IReliableStateManager _stateManager;
         private CancellationToken _cancellationToken;
         private Thread _tableThread;
-        private long _dictCounter;
         private ITransaction _transaction;
-        private string _localUsername;
+        private long _localAccountNumber;
         private double _localPrice;
-        private IReliableDictionary<string, BankAccount> _bankDictionary;
+        private IReliableDictionary<long, BankAccount> _bankDictionary;
 
         public BankService(IReliableStateManager stateManager)
         {
@@ -36,7 +35,6 @@ namespace BankStatefulService.Services
 
             this._stateManager = stateManager;
             this._cancellationToken.ThrowIfCancellationRequested();
-            this._dictCounter = 0;
 
             this._transaction = null;
             this._tableThread = new Thread(new ThreadStart(TableWriteThread));
@@ -44,7 +42,7 @@ namespace BankStatefulService.Services
 
         public async Task SetDictionary()
         {
-            this._bankDictionary = await this._stateManager.GetOrAddAsync<IReliableDictionary<string, BankAccount>>("Bank"); ;
+            this._bankDictionary = await this._stateManager.GetOrAddAsync<IReliableDictionary<long, BankAccount>>("Bank"); ;
 
             StartThread();
         }
@@ -53,14 +51,37 @@ namespace BankStatefulService.Services
         {
             using (var tx = this._stateManager.CreateTransaction())
             {
-                await this._bankDictionary.AddAsync(tx, account.OwnerUsername, account);
+                await this._bankDictionary.AddAsync(tx, account.AccountNumber, account);
                 await tx.CommitAsync();
             }
 
-            //TableOperation retrieveOperation = TableOperation.InsertOrReplace(new BankAccountTableEntity(account));
-            //await this._table.ExecuteAsync(retrieveOperation);
-
             return true;
+        }
+
+        public async Task<bool> EnlistMoneyTransfer(long accountNumber, double price)
+        {
+            this._localPrice = price;
+            this._localAccountNumber = accountNumber;
+
+            var isPrepared = await Prepare();
+
+            return isPrepared;
+        }
+
+        public async Task<bool> Prepare()
+        {
+            this._transaction = this._stateManager.CreateTransaction();
+
+            var account = await _bankDictionary.TryGetValueAsync(this._transaction, this._localAccountNumber);
+
+            if (account.Value.AvailableAssets >= this._localPrice)
+            {
+                account.Value.AvailableAssets = account.Value.AvailableAssets - this._localPrice;
+                await _bankDictionary.AddOrUpdateAsync(this._transaction, this._localAccountNumber, account.Value, (key, value) => value);
+                return true;
+            }
+
+            return false;
         }
 
         public async Task Commit()
@@ -70,40 +91,11 @@ namespace BankStatefulService.Services
             this._transaction = null;
         }
 
-        public async Task<bool> Prepare()
-        {
-            this._transaction = this._stateManager.CreateTransaction();
-
-            var account = await _bankDictionary.TryGetValueAsync(this._transaction, this._localUsername);
-
-            if (account.Value.AvailableAssets >= this._localPrice)
-            {
-                account.Value.AvailableAssets = account.Value.AvailableAssets - this._localPrice;
-                await _bankDictionary.AddOrUpdateAsync(this._transaction, this._localUsername, account.Value, (key, value) => value);
-                return true;
-            }
-
-            return false;
-        }
-
         public async Task Rollback()
         {
             this._transaction.Abort();
             this._transaction.Dispose();
             this._transaction = null;
-        }
-
-        public async Task<bool> EnlistMoneyTransfer(string username, double price)
-        {
-            //for now here
-            StartThread();
-
-            this._localPrice = price;
-            this._localUsername = username;
-
-            var isPrepared = await Prepare();
-
-            return isPrepared;
         }
 
         private async void LoadTableData()
@@ -114,24 +106,17 @@ namespace BankStatefulService.Services
 
                 foreach (BankAccountTableEntity account in this._table.ExecuteQuery(query))
                 {
-                    await this._bankDictionary.AddAsync(tx, account.OwnerUsername, new BankAccount(account));
+                    await this._bankDictionary.AddAsync(tx, account.AccountNumber, new BankAccount(account));
                 }
 
-                long currentDictCount = await _bankDictionary.GetCountAsync(tx);
-
                 await tx.CommitAsync();
-
-                this._dictCounter = currentDictCount;
             }
         }
 
         private void StartThread()
         {
-            if (this._dictCounter == 0)
-            {
-                LoadTableData();
-                this._tableThread.Start();
-            }
+            LoadTableData();
+            this._tableThread.Start();
         }
 
         private async void TableWriteThread()
@@ -140,22 +125,15 @@ namespace BankStatefulService.Services
             {
                 using (var tx = this._stateManager.CreateTransaction())
                 {
-                    long currentDictCount = await this._bankDictionary.GetCountAsync(tx);
+                    var enumerator = (await this._bankDictionary.CreateEnumerableAsync(tx)).GetAsyncEnumerator();
 
-                    if (this._dictCounter != currentDictCount)
+                    while (await enumerator.MoveNextAsync(this._cancellationToken))
                     {
-                        var enumerator = (await this._bankDictionary.CreateEnumerableAsync(tx)).GetAsyncEnumerator();
+                        BankAccount account = enumerator.Current.Value;
 
-                        while (await enumerator.MoveNextAsync(this._cancellationToken))
-                        {
-                            BankAccount account = enumerator.Current.Value;
+                        TableOperation insertOperation = TableOperation.InsertOrReplace(new BankAccountTableEntity(account));
 
-                            TableOperation insertOperation = TableOperation.InsertOrReplace(new BankAccountTableEntity(account));
-
-                            await this._table.ExecuteAsync(insertOperation);
-                        }
-
-                        this._dictCounter = currentDictCount;
+                        await this._table.ExecuteAsync(insertOperation);
                     }
                 }
 

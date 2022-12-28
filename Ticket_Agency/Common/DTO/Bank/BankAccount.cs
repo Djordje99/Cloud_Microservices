@@ -2,30 +2,30 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Common.DTO
 {
+    [DataContract]
     public class BankAccount
     {
-        public long ID { get; set; }
         [Required]
-        public string OwnerUsername { get; set; }
+        [RegularExpression(@"^\d{16}$", ErrorMessage = "The field must contain exactly 16 digits.")]
+        [DataMember]
+        public long AccountNumber { get; set; }
+
         [Required]
-        [StringLength(16, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 16)]
-        public string AccountNumber { get; set; }
-        [Required]
+        [DataMember]
         public double AvailableAssets { get; set; }
 
         public BankAccount() { }
 
         public BankAccount(BankAccountTableEntity account)
         {
-            this.ID = account.ID;
             this.AccountNumber = account.AccountNumber;
             this.AvailableAssets = account.AvailableAssets;
-            this.OwnerUsername = this.OwnerUsername;
         }
     }
 }
