@@ -79,14 +79,14 @@ namespace TransactionCoordinatorStatefulService.Services
 
                             if (departureResult && bankResult)
                             {
-                                await departure.Commit();
-                                await bank.Commit();
-
                                 var purchaseID = await SavePurchaseToDictionary(departureId, ticketAmount);
 
                                 await user.SetPurchaseToUser(username, purchaseID);
 
                                 isBought = true;
+
+                                await departure.Commit();
+                                await bank.Commit();
                             }
                             else
                             {

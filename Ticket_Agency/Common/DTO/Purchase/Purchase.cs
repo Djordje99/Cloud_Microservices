@@ -22,8 +22,8 @@ namespace Common.DTO
         public Purchase(PurchaseTableEntity purchase)
         {
             this.ID = purchase.ID;
-            this.DepartureID = this.DepartureID;
-            this.TicketPurchaseCount = this.TicketPurchaseCount;
+            this.DepartureID = purchase.DepartureID;
+            this.TicketPurchaseCount = purchase.TicketPurchaseCount;
         }
     }
 }

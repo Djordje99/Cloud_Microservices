@@ -17,34 +17,56 @@ namespace UserStatefulService.Services
     public class UserService : IUserService
     {
         private CloudStorageAccount _storageAccount;
-        private CloudTable _table;
+        private CloudTable _tableUser;
+        private CloudTable _tableUserPurchase;
         private IReliableStateManager _stateManager;
         private CancellationToken _cancellationToken;
-        private Thread _tableThread;
+        private Thread _userTableThread;
+        private Thread _userPurchaseTableThread;
         private IReliableDictionary<string, User> userDictionary;
+        private IReliableDictionary<long, UserPurchase> userPurchaseDictionary;
 
         public UserService(IReliableStateManager stateManager)
         {
             _storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("ConnectionString"));
             CloudTableClient tableClient = new CloudTableClient(new Uri(_storageAccount.TableEndpoint.AbsoluteUri), _storageAccount.Credentials);
-            this._table = tableClient.GetTableReference("User");
-            this._table.CreateIfNotExists();
+            this._tableUser = tableClient.GetTableReference("User");
+            this._tableUser.CreateIfNotExists();
+
+            this._tableUserPurchase = tableClient.GetTableReference("UserPurchase");
+            this._tableUserPurchase.CreateIfNotExists();
 
             this._stateManager = stateManager;
             this._cancellationToken.ThrowIfCancellationRequested();
-            this._tableThread = new Thread(new ThreadStart(TableWriteThread));
+
+            this._userTableThread = new Thread(new ThreadStart(UserTableWriteThread));
+            this._userPurchaseTableThread = new Thread(new ThreadStart(UserPurchaseTableWriteThread));
         }
 
         public async Task SetDictionary()
         {
-            this.userDictionary = await this._stateManager.GetOrAddAsync<IReliableDictionary<string, User>>("User"); ;
+            this.userDictionary = await this._stateManager.GetOrAddAsync<IReliableDictionary<string, User>>("User");
+            this.userPurchaseDictionary = await this._stateManager.GetOrAddAsync<IReliableDictionary<long, UserPurchase>>("UserPurchase");
 
             StartThread();
         }
 
         public async Task SetPurchaseToUser(string username, long purchaseID)
         {
+            UserPurchase userPurchase = new UserPurchase()
+            { 
+                PurchaseId = purchaseID, 
+                Username = username,
+                ID = Int64.Parse(DateTime.Now.ToString("yyyyMMddHHmmssffff"))
+            };
+
             using(var tx = this._stateManager.CreateTransaction())
+            {
+                await userPurchaseDictionary.AddAsync(tx, userPurchase.ID, userPurchase);
+                await tx.CommitAsync();
+            }
+
+            using (var tx = this._stateManager.CreateTransaction())
             {
                 var user = await this.userDictionary.TryGetValueAsync(tx, username);
 
@@ -52,8 +74,6 @@ namespace UserStatefulService.Services
                     user.Value.PurchaseHistory = new List<long>() { purchaseID };
                 else
                     user.Value.PurchaseHistory.Add(purchaseID);
-
-                await this.userDictionary.AddOrUpdateAsync(tx, username, user.Value, (key, value) => value);
 
                 await tx.CommitAsync();
             }
@@ -85,18 +105,16 @@ namespace UserStatefulService.Services
         {
             bool status = false;
 
-            TableOperation retrieveOperation = TableOperation.Retrieve<UserTableEntity>("User", user.Username);
-            TableResult result = this._table.Execute(retrieveOperation);
-
-            if (result.Result != null)
-                return false;
-
-
             using (var tx = this._stateManager.CreateTransaction())
             {
-                await this.userDictionary.AddAsync(tx, user.Username, new User(user));
-                await tx.CommitAsync();
-                status = true;
+                bool isExists = await this.userDictionary.ContainsKeyAsync(tx, user.Username);
+
+                if (!isExists)
+                {
+                    await this.userDictionary.AddAsync(tx, user.Username, new User(user));
+                    await tx.CommitAsync();
+                    status = true;
+                }
             }
 
             return status;
@@ -112,15 +130,43 @@ namespace UserStatefulService.Services
             }
         }
 
-        private async void LoadTableData()
+        private async void LoadUserTableData()
         {
             using (var tx = this._stateManager.CreateTransaction())
             {
                 TableQuery<UserTableEntity> query = new TableQuery<UserTableEntity>();
 
-                foreach (UserTableEntity userTable in this._table.ExecuteQuery(query))
+                foreach (UserTableEntity userTable in this._tableUser.ExecuteQuery(query))
                 {
-                    await this.userDictionary.AddAsync(tx, userTable.Username, new User(userTable));
+                    var user = new User(userTable);
+
+                    var purchases = (await this.userPurchaseDictionary.CreateEnumerableAsync(tx)).GetAsyncEnumerator();
+
+                    while (await purchases.MoveNextAsync(this._cancellationToken))
+                    {
+                        if (user.Username == purchases.Current.Value.Username)
+                            if (user.PurchaseHistory == null)
+                                user.PurchaseHistory = new List<long>() { purchases.Current.Value.PurchaseId };
+                            else
+                                user.PurchaseHistory.Add(purchases.Current.Value.PurchaseId);
+                    }
+
+                    await this.userDictionary.AddAsync(tx, userTable.Username, user);
+                }
+
+                await tx.CommitAsync();
+            }
+        }
+
+        private async void LoadUserPurchaseTableData()
+        {
+            using (var tx = this._stateManager.CreateTransaction())
+            {
+                TableQuery<UserPurchaseTableEntity> query = new TableQuery<UserPurchaseTableEntity>();
+
+                foreach (UserPurchaseTableEntity userPurchaseTable in this._tableUserPurchase.ExecuteQuery(query))
+                {
+                    await this.userPurchaseDictionary.AddAsync(tx, userPurchaseTable.ID, new UserPurchase(userPurchaseTable));
                 }
 
                 await tx.CommitAsync();
@@ -129,11 +175,13 @@ namespace UserStatefulService.Services
 
         private void StartThread()
         {
-            LoadTableData();
-            this._tableThread.Start();
+            LoadUserPurchaseTableData();
+            LoadUserTableData();
+            this._userTableThread.Start();
+            this._userPurchaseTableThread.Start();
         }
 
-        private async void TableWriteThread()
+        private async void UserTableWriteThread()
         {
             while (true)
             {
@@ -147,7 +195,29 @@ namespace UserStatefulService.Services
 
                         TableOperation insertOperation = TableOperation.InsertOrReplace(new UserTableEntity(user));
 
-                        await this._table.ExecuteAsync(insertOperation);
+                        await this._tableUser.ExecuteAsync(insertOperation);
+                    }
+                }
+
+                Thread.Sleep(5000);
+            }
+        }
+
+        private async void UserPurchaseTableWriteThread()
+        {
+            while (true)
+            {
+                using (var tx = this._stateManager.CreateTransaction())
+                {
+                    var enumerator = (await this.userPurchaseDictionary.CreateEnumerableAsync(tx)).GetAsyncEnumerator();
+
+                    while (await enumerator.MoveNextAsync(this._cancellationToken))
+                    {
+                        UserPurchase user = enumerator.Current.Value;
+
+                        TableOperation insertOperation = TableOperation.InsertOrReplace(new UserPurchaseTableEntity(user));
+
+                        await this._tableUserPurchase.ExecuteAsync(insertOperation);
                     }
                 }
 

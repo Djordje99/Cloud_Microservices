@@ -99,6 +99,8 @@
     <Compile Include="DTO\Departure\DepartureTableEntity.cs" />
     <Compile Include="DTO\Purchase\Purchase.cs" />
     <Compile Include="DTO\Purchase\PurchaseTableEntity.cs" />
+    <Compile Include="DTO\UserPurchase\UserPurchase.cs" />
+    <Compile Include="DTO\UserPurchase\UserPurchaseTableEntity.cs" />
     <Compile Include="DTO\User\LogInUser.cs" />
     <Compile Include="DTO\User\RegisterUser.cs" />
     <Compile Include="DTO\User\User.cs" />
