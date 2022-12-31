@@ -1,4 +1,5 @@
 ﻿using Common.DTO;
+using Common.Enums;
 using Common.Interfaces;
 using Microsoft.Azure;
 using Microsoft.ServiceFabric.Data;
@@ -106,15 +107,13 @@ namespace DepartureStatefulService.Services
         public async Task<bool> CreateDeparture(Departure departure)
         {
             departure.ID =  Int64.Parse(DateTime.Now.ToString("yyyyMMddHHmmssffff"));
+            departure.TransportTypeInt = (int)departure.TransportType;
 
             using (var tx = this._stateManager.CreateTransaction())
             {
                 await this._departureDictionary.AddAsync(tx, departure.ID, departure);
                 await tx.CommitAsync();
             }
-
-            //TableOperation retrieveOperation = TableOperation.InsertOrReplace(new DepartureTableEntity(departure));
-            //await this._table.ExecuteAsync(retrieveOperation);
 
             return true;
         }
@@ -123,14 +122,28 @@ namespace DepartureStatefulService.Services
         {
             List<Departure> departureList = new List<Departure>();
 
-            TableQuery<DepartureTableEntity> query = new TableQuery<DepartureTableEntity>();
-
-            foreach (DepartureTableEntity entity in this._table.ExecuteQuery(query))
+            using (var tx = this._stateManager.CreateTransaction())
             {
-                //only dates less than now
-                departureList.Add(new Departure(entity));
+                var enumerator = (await this._departureDictionary.CreateEnumerableAsync(tx)).GetAsyncEnumerator();
+
+                while (await enumerator.MoveNextAsync(this._cancellationToken))
+                {
+                    Departure departure = enumerator.Current.Value;
+                    if (departure.DepartureStart > DateTime.Now)
+                        departureList.Add(departure);
+
+                }
             }
 
+            //TableQuery<DepartureTableEntity> query = new TableQuery<DepartureTableEntity>();
+
+            //foreach (DepartureTableEntity entity in this._table.ExecuteQuery(query))
+            //{
+            //    if(entity.DepartureStart > DateTime.Now)
+            //        departureList.Add(new Departure(entity));
+            //}
+
+            
             return departureList;
         }
 
@@ -142,6 +155,7 @@ namespace DepartureStatefulService.Services
 
                 foreach (DepartureTableEntity departure in this._table.ExecuteQuery(query))
                 {
+                    departure.TransportType = (TransportType)departure.TransportTypeInt;
                     await this._departureDictionary.AddAsync(tx, departure.ID, new Departure(departure));
                 }
 

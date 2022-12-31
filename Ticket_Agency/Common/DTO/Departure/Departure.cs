@@ -49,6 +49,8 @@ namespace Common.DTO
         [DataMember]
         public int DepartureAvaiableTicketCount { get; set; }
 
+        public int TransportTypeInt { get; set; }
+
         public Departure() { }
 
         public Departure(DepartureTableEntity departure)
@@ -60,6 +62,7 @@ namespace Common.DTO
             this.DepartureReturn = departure.DepartureReturn;
             this.DepartureAvaiableTicketCount = departure.DepartureAvaiableTicketCount;
             this.DeaprtureTicketCount = departure.DeaprtureTicketCount;
+            this.TransportTypeInt = departure.TransportTypeInt;
         }
     }
 }
