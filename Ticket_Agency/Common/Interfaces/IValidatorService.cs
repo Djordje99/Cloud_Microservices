@@ -1,4 +1,5 @@
 ﻿using Common.DTO;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.ServiceModel;
@@ -27,5 +28,8 @@ namespace Common.Interfaces
 
         [OperationContract]
         Task BuyDepertureTicket(string username, long departureId, int ticketAmount);
+
+        [OperationContract]
+        Task<List<Departure>> ListDepartureFilter(string transportType, DateTime fromDate, int availableTickets);
     }
 }

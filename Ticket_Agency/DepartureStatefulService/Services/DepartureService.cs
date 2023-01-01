@@ -134,16 +134,47 @@ namespace DepartureStatefulService.Services
 
                 }
             }
-
-            //TableQuery<DepartureTableEntity> query = new TableQuery<DepartureTableEntity>();
-
-            //foreach (DepartureTableEntity entity in this._table.ExecuteQuery(query))
-            //{
-            //    if(entity.DepartureStart > DateTime.Now)
-            //        departureList.Add(new Departure(entity));
-            //}
-
             
+            return departureList;
+        }
+
+        public async Task<List<Departure>> ListDepartureFilter(string transportType, DateTime fromDate, int availableTickets)
+        {
+            int transportTypeInt = -1;
+            if(transportType != null)
+            {
+                transportTypeInt = (int)((TransportType)Enum.Parse(typeof(TransportType), transportType));
+            }
+
+            List<Departure> departureList = await ListDeparture();
+
+            if(transportTypeInt != -1)
+            {
+                var filteredListTransport = from departure in departureList
+                               where departure.TransportTypeInt == transportTypeInt
+                               select departure;
+
+                departureList = filteredListTransport.ToList();
+            }
+
+            if (fromDate != null)
+            {
+                var filteredListTransport = from departure in departureList
+                                            where departure.DepartureStart >= fromDate
+                                            select departure;
+
+                departureList = filteredListTransport.ToList();
+            }
+
+            if (availableTickets != 0)
+            {
+                var filteredListTransport = from departure in departureList
+                                            where departure.DepartureAvaiableTicketCount >= availableTickets
+                                            select departure;
+
+                departureList = filteredListTransport.ToList();
+            }
+
             return departureList;
         }
 

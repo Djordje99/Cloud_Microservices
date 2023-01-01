@@ -6,6 +6,54 @@
 
 <h2>Departure List</h2>
 
+@using (Html.BeginForm("FilterDeparture", "Departure", FormMethod.Post))
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    <label for="TransportType">Transport Type:</label>
+                </th>
+                <th>
+                    <label for="FromDate">From Date</label>
+                </th>
+                <th>
+                    <label for="AvailableTickets">Available Tickets</label>
+                </th>
+                <th>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <select id="TransportType" name="TransportType" class="form-control">
+                        <option value="">All</option>
+                        <option value="BUS">Bus</option>
+                        <option value="PLANE">Plane</option>
+                        <option value="TRAIN">Train</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="date" id="FromDate" name="FromDate" min="@DateTime.Now" class="form-control" />
+                </td>
+                <td>
+                    <input type="number" id="AvailableTickets" name="AvailableTickets" min="0" class="form-control" />
+                </td>
+                <td>
+                    <input type="submit" value="Filter" class="btn btn-default" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+@using (Html.BeginForm("ListDeparture", "Departure", FormMethod.Get))
+{
+    <input type="submit" value="Reset" class="btn btn-default" />
+}
+
+
 <table class="table">
     <thead>
         <tr>
@@ -34,45 +82,45 @@
         </tr>
     </thead>
     <tbody>
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.TransportType)
-            </td>
-            <th>
-                @Html.DisplayFor(modelItem => item.CityName)
-            </th>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DepartureStart)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DepartureReturn)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DeaprtureTicketCount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DepartureAvaiableTicketCount)
-            </td>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TransportType)
+                </td>
+                <th>
+                    @Html.DisplayFor(modelItem => item.CityName)
+                </th>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Price)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DepartureStart)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DepartureReturn)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DeaprtureTicketCount)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DepartureAvaiableTicketCount)
+                </td>
 
-            @if (ViewBag.logged != null)
-            {
-                @using (Html.BeginForm("BuyDepertureTicket", "Departure", FormMethod.Post))
+                @if (ViewBag.logged != null)
                 {
-                    <td>
-                        <input type="hidden" value="@item.ID" name="id" />
-                        <input type="number" value="0" name="amount" class="form-control" />
-                    </td>
-                    <td>
-                        <input type="submit" value="Buy" class="btn btn-default" />
-                    </td>
+                    @using (Html.BeginForm("BuyDepertureTicket", "Departure", FormMethod.Post))
+                    {
+                        <td>
+                            <input type="hidden" value="@item.ID" name="id" />
+                            <input type="number" value="0" name="amount" class="form-control" />
+                        </td>
+                        <td>
+                            <input type="submit" value="Buy" class="btn btn-default" />
+                        </td>
+                    }
                 }
-            }
-        </tr>
-    }
+            </tr>
+        }
     </tbody>
 </table>

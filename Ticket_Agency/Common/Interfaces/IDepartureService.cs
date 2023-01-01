@@ -26,5 +26,8 @@ namespace Common.Interfaces
 
         [OperationContract]
         Task SetDictionary();
+
+        [OperationContract]
+        Task<List<Departure>> ListDepartureFilter(string transportType, DateTime fromDate, int availableTickets);
     }
 }
