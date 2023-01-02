@@ -51,6 +51,28 @@ namespace UserStatefulService.Services
             StartThread();
         }
 
+        public async Task<List<UserPurchase>> GetUserPurchases(string username)
+        {
+            List<UserPurchase> userPurchases = new List<UserPurchase>();
+
+            using (var tx = this._stateManager.CreateTransaction())
+            {
+                var user = await this.userDictionary.TryGetValueAsync(tx, username);
+
+                if (user.Value.PurchaseHistory != null)
+                {
+                    foreach (var userPurchaseId in user.Value.PurchaseHistory)
+                    {
+                        var userPurchase = await this.userPurchaseDictionary.TryGetValueAsync(tx, userPurchaseId);
+
+                        userPurchases.Add(userPurchase.Value);
+                    }
+                }
+            }
+
+            return userPurchases;
+        }
+
         public async Task SetPurchaseToUser(string username, long purchaseID)
         {
             UserPurchase userPurchase = new UserPurchase()
@@ -71,9 +93,9 @@ namespace UserStatefulService.Services
                 var user = await this.userDictionary.TryGetValueAsync(tx, username);
 
                 if (user.Value.PurchaseHistory == null)
-                    user.Value.PurchaseHistory = new List<long>() { purchaseID };
+                    user.Value.PurchaseHistory = new List<long>() { userPurchase.ID };
                 else
-                    user.Value.PurchaseHistory.Add(purchaseID);
+                    user.Value.PurchaseHistory.Add(userPurchase.ID);
 
                 await tx.CommitAsync();
             }
@@ -130,6 +152,27 @@ namespace UserStatefulService.Services
             }
         }
 
+        public async Task CancelPurchase(long userPurchaseId)
+        {
+            TableOperation retrieveOperation = TableOperation.Retrieve<UserPurchaseTableEntity>("UserPurchase", userPurchaseId.ToString());
+            TableResult result = await this._tableUserPurchase.ExecuteAsync(retrieveOperation);
+
+            UserPurchaseTableEntity entity = result.Result as UserPurchaseTableEntity;
+
+            if (entity != null)
+            {
+                TableOperation deleteOperation = TableOperation.Delete(entity);
+                await this._tableUserPurchase.ExecuteAsync(deleteOperation);
+            }
+
+            await this.userDictionary.ClearAsync();
+            await this.userPurchaseDictionary.ClearAsync();
+
+            LoadUserPurchaseTableData();
+            LoadUserTableData();
+        }
+
+        #region StartService
         private async void LoadUserTableData()
         {
             using (var tx = this._stateManager.CreateTransaction())
@@ -146,9 +189,9 @@ namespace UserStatefulService.Services
                     {
                         if (user.Username == purchases.Current.Value.Username)
                             if (user.PurchaseHistory == null)
-                                user.PurchaseHistory = new List<long>() { purchases.Current.Value.PurchaseId };
+                                user.PurchaseHistory = new List<long>() { purchases.Current.Value.ID };
                             else
-                                user.PurchaseHistory.Add(purchases.Current.Value.PurchaseId);
+                                user.PurchaseHistory.Add(purchases.Current.Value.ID);
                     }
 
                     await this.userDictionary.AddAsync(tx, userTable.Username, user);
@@ -224,5 +267,6 @@ namespace UserStatefulService.Services
                 Thread.Sleep(5000);
             }
         }
+        #endregion
     }
 }

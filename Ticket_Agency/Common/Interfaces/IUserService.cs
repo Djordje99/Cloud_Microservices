@@ -25,5 +25,11 @@ namespace Common.Interfaces
 
         [OperationContract]
         Task SetPurchaseToUser(string username, long purchaseID);
+
+        [OperationContract]
+        Task<List<UserPurchase>> GetUserPurchases(string username);
+
+        [OperationContract]
+        Task CancelPurchase(long userPurchaseId);
     }
 }

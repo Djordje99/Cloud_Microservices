@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common.DTO;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.ServiceModel;
@@ -15,5 +16,11 @@ namespace Common.Interfaces
 
         [OperationContract]
         Task SetDictionary();
+
+        [OperationContract]
+        Task<Purchase> GetPurchaseById(long purchaseId);
+
+        [OperationContract]
+        Task CancelPurchase(long purchaseId);
     }
 }

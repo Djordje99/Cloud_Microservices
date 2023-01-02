@@ -68,6 +68,19 @@ namespace BankStatefulService.Services
             return isPrepared;
         }
 
+        public async Task CancelPurchase(long bankAccount, double price)
+        {
+            using (var tx = this._stateManager.CreateTransaction())
+            {
+                var bank = await this._bankDictionary.TryGetValueAsync(tx, bankAccount);
+
+                bank.Value.AvailableAssets = bank.Value.AvailableAssets + price;
+                await _bankDictionary.AddOrUpdateAsync(tx, bankAccount, bank.Value, (key, value) => value);
+
+                await tx.CommitAsync();
+            }
+        }
+
         public async Task<bool> Prepare()
         {
             this._transaction = this._stateManager.CreateTransaction();
@@ -98,6 +111,7 @@ namespace BankStatefulService.Services
             this._transaction = null;
         }
 
+        #region StartThread
         private async void LoadTableData()
         {
             using (var tx = this._stateManager.CreateTransaction())
@@ -140,5 +154,6 @@ namespace BankStatefulService.Services
                 Thread.Sleep(5000);
             }
         }
+        #endregion
     }
 }

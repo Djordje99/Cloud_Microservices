@@ -1,0 +1,89 @@
+﻿@model IEnumerable<Common.DTO.DetailPurchase>
+
+@{
+    ViewData["Title"] = "UserPurchaseList";
+}
+
+<h2>User Purchase List</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            @*<th>
+                @Html.DisplayNameFor(model => model.DepartureID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Username)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PurchaseID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UserPurchaseID)
+            </th>*@
+            <th>
+                @Html.DisplayNameFor(model => model.CityName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DepartureStart)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DepartureReturn)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TicketAmount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Price)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            @*<td>
+            @Html.DisplayFor(modelItem => item.DepartureID)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Username)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.PurchaseID)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.UserPurchaseID)
+        </td>*@
+            <td>
+                @Html.DisplayFor(modelItem => item.CityName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DepartureStart)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DepartureReturn)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TicketAmount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Price)
+            </td>
+            @using (Html.BeginForm("CancelTicket", "User", FormMethod.Post))
+            {
+                <td>
+                    <input type="hidden" value="@item.Username" name="username" />
+                    <input type="hidden" value="@item.DepartureID" name="deaprtureId" />
+                    <input type="hidden" value="@item.PurchaseID" name="purchaseId" />
+                    <input type="hidden" value="@item.TicketAmount" name="ticketAmount" />
+                    <input type="hidden" value="@item.Price" name="price" />
+                    <input type="hidden" value="@item.UserPurchaseID" name="userPurchaseId" />
+                </td>
+                <td>
+                    <input type="submit" value="Cancel" class="btn btn-default" />
+                </td>
+             }
+        </tr>
+}
+    </tbody>
+</table>

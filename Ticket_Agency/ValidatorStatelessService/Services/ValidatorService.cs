@@ -147,6 +147,179 @@ namespace ValidatorStatelessService.Services
             return departureList;
         }
 
+        public async Task CancelPurchase(CancelPurchase cancelPurchase)
+        {
+            long bankAccount = 0;
+            //get userpurchases
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:20001/UserService");
+
+            using (var channelFactory = new ChannelFactory<IUserService>(binding, endpointAddress))
+            {
+                IUserService userService = null;
+                try
+                {
+                    userService = channelFactory.CreateChannel();
+                    await userService.CancelPurchase(cancelPurchase.UserPurchaseId);
+                    bankAccount = await userService.GetUsersBankAcount(cancelPurchase.Username);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            //give back money
+            binding = new NetTcpBinding(SecurityMode.None);
+            endpointAddress = new EndpointAddress("net.tcp://localhost:20025/BankService");
+
+            using (var channelFactory = new ChannelFactory<IBankService>(binding, endpointAddress))
+            {
+                IBankService bankService = null;
+                try
+                {
+                    bankService = channelFactory.CreateChannel();
+                    await bankService.CancelPurchase(bankAccount, cancelPurchase.Price);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            //get purchases
+            binding = new NetTcpBinding(SecurityMode.None);
+            endpointAddress = new EndpointAddress("net.tcp://localhost:20035/TransactionCordinatorService");
+
+            using (var channelFactory = new ChannelFactory<ITransactionCordinatorService>(binding, endpointAddress))
+            {
+                ITransactionCordinatorService transactionService = null;
+                try
+                {
+                    transactionService = channelFactory.CreateChannel();
+
+                    await transactionService.CancelPurchase(cancelPurchase.PurchaseId);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            //get deaprtures
+            binding = new NetTcpBinding(SecurityMode.None);
+            endpointAddress = new EndpointAddress("net.tcp://localhost:20015/DepartureService");
+
+            using (var channelFactory = new ChannelFactory<IDepartureService>(binding, endpointAddress))
+            {
+                IDepartureService departureService = null;
+                try
+                {
+                    departureService = channelFactory.CreateChannel();
+
+                    await departureService.CancelPurchase(cancelPurchase.DeaprtureId, cancelPurchase.TicketAmount);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+        }
+
+        public async Task<List<DetailPurchase>> PurchaseList(string username)
+        {
+            List<UserPurchase> userPurchases = new List<UserPurchase>();
+            List<Purchase> purchases = new List<Purchase>();
+            List<Departure> departureList = new List<Departure>();
+            List<DetailPurchase> detailPurchases = new List<DetailPurchase>();
+
+            //get userpurchases
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:20001/UserService");
+
+            using (var channelFactory = new ChannelFactory<IUserService>(binding, endpointAddress))
+            {
+                IUserService userService = null;
+                try
+                {
+                    userService = channelFactory.CreateChannel();
+                    userPurchases = await userService.GetUserPurchases(username);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            //get purchases
+            binding = new NetTcpBinding(SecurityMode.None);
+            endpointAddress = new EndpointAddress("net.tcp://localhost:20035/TransactionCordinatorService");
+
+            using (var channelFactory = new ChannelFactory<ITransactionCordinatorService>(binding, endpointAddress))
+            {
+                ITransactionCordinatorService transactionService = null;
+                try
+                {
+                    transactionService = channelFactory.CreateChannel();
+
+                    foreach (var userPurchase in userPurchases)
+                    {
+                        var purchase = await transactionService.GetPurchaseById(userPurchase.PurchaseId);
+
+                        purchases.Add(purchase);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            //get deaprtures
+            binding = new NetTcpBinding(SecurityMode.None);
+            endpointAddress = new EndpointAddress("net.tcp://localhost:20015/DepartureService");
+
+            using (var channelFactory = new ChannelFactory<IDepartureService>(binding, endpointAddress))
+            {
+                IDepartureService departureService = null;
+                try
+                {
+                    departureService = channelFactory.CreateChannel();
+
+                    foreach (var purchase in purchases)
+                    {
+                        var departure = await departureService.GetDepartureById(purchase.DepartureID);
+
+                        departureList.Add(departure);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            for (int i = 0; i < departureList.Count; i++)
+            {
+                DetailPurchase detailPurchase = new DetailPurchase()
+                {
+                    DepartureID = departureList[i].ID,
+                    Username = username,
+                    PurchaseID = purchases[i].ID,
+                    CityName = departureList[i].CityName,
+                    DepartureStart = departureList[i].DepartureStart,
+                    DepartureReturn = departureList[i].DepartureReturn,
+                    Price = departureList[i].Price * purchases[i].TicketPurchaseCount,
+                    TicketAmount = purchases[i].TicketPurchaseCount,
+                    UserPurchaseID = userPurchases[i].ID
+                };
+
+                detailPurchases.Add(detailPurchase);
+            }
+
+            return detailPurchases;
+        }
+
         public async Task ValidateUserLogIn(RegisterUser user)
         {
             bool isLoged = false;
@@ -211,7 +384,6 @@ namespace ValidatorStatelessService.Services
 
             if (!user.Password.Equals(user.PasswordRepeat))
                 throw new Exception("Password and Repeat password are not same.");
-
         }
     }
 }

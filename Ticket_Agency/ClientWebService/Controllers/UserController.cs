@@ -82,5 +82,56 @@ namespace ClientWebService.Controllers
 
             return Redirect("/");
         }
+
+        public async Task<IActionResult> UserPurchaseList()
+        {
+            var loggedUsername = HttpContext.Session.GetString("Logged");
+
+            List<DetailPurchase> detailPurchases = new List<DetailPurchase>();
+
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:19999/WebCommunication");
+
+            using (var channelFactory = new ChannelFactory<IValidatorService>(binding, endpointAddress))
+            {
+                IValidatorService validator = null;
+                try
+                {
+                    validator = channelFactory.CreateChannel();
+                    detailPurchases = await validator.PurchaseList(loggedUsername);
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            return View(detailPurchases);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CancelTicket(CancelPurchase cancelPurchase)
+        {
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:19999/WebCommunication");
+
+            using (var channelFactory = new ChannelFactory<IValidatorService>(binding, endpointAddress))
+            {
+                IValidatorService validator = null;
+                try
+                {
+                    validator = channelFactory.CreateChannel();
+                    await validator.CancelPurchase(cancelPurchase);
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            return RedirectToAction("UserPurchaseList", "User");
+        }
     }
 }

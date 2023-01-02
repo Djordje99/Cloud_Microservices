@@ -118,6 +118,29 @@ namespace DepartureStatefulService.Services
             return true;
         }
 
+        public async Task<Departure> GetDepartureById(long departureID)
+        {
+            using (var tx = this._stateManager.CreateTransaction())
+            {
+                var deaprture = await this._departureDictionary.TryGetValueAsync(tx, departureID);
+
+                return deaprture.Value;
+            }
+        }
+
+        public async Task CancelPurchase(long deaprtureId, int ticketAmount)
+        {
+            using (var tx = this._stateManager.CreateTransaction())
+            {
+                var departure = await this._departureDictionary.TryGetValueAsync(tx, deaprtureId);
+
+                departure.Value.DepartureAvaiableTicketCount = departure.Value.DepartureAvaiableTicketCount + ticketAmount;
+                await _departureDictionary.AddOrUpdateAsync(tx, deaprtureId, departure.Value, (key, value) => value);
+
+                await tx.CommitAsync();
+            }
+        }
+
         public async Task<List<Departure>> ListDeparture()
         {
             List<Departure> departureList = new List<Departure>();
@@ -178,6 +201,7 @@ namespace DepartureStatefulService.Services
             return departureList;
         }
 
+        #region StartThread
         private async void LoadTableData()
         {
             using (var tx = this._stateManager.CreateTransaction())
@@ -221,5 +245,6 @@ namespace DepartureStatefulService.Services
                 Thread.Sleep(5000);
             }
         }
+#endregion
     }
 }

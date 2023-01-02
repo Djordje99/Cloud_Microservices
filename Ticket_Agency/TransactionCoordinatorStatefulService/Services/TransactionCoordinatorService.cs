@@ -45,6 +45,24 @@ namespace TransactionCoordinatorStatefulService.Services
             StartThread();
         }
 
+        public async Task CancelPurchase(long purchaseId)
+        {
+            TableOperation retrieveOperation = TableOperation.Retrieve<PurchaseTableEntity>("Purchase", purchaseId.ToString());
+            TableResult result = await this._table.ExecuteAsync(retrieveOperation);
+
+            PurchaseTableEntity entity = result.Result as PurchaseTableEntity;
+
+            if (entity != null)
+            {
+                TableOperation deleteOperation = TableOperation.Delete(entity);
+                await this._table.ExecuteAsync(deleteOperation);
+            }
+
+            await this.purchaseDictionary.ClearAsync();
+
+            LoadTableData();
+        }
+
         public async Task<bool> BuyDepertureTicket(string username, long departureId, int ticketAmount)
         {
             bool isBought = false;
@@ -127,7 +145,7 @@ namespace TransactionCoordinatorStatefulService.Services
             return purchase.ID;
         }
 
-
+        #region StartThread
         private async void LoadTableData()
         {
             using (var tx = this._stateManager.CreateTransaction())
@@ -169,5 +187,16 @@ namespace TransactionCoordinatorStatefulService.Services
                 Thread.Sleep(5000);
             }
         }
+
+        public async Task<Purchase> GetPurchaseById(long purchaseId)
+        {
+            using (var tx = this._stateManager.CreateTransaction())
+            {
+                var purchase = await this.purchaseDictionary.TryGetValueAsync(tx, purchaseId);
+
+                return purchase.Value;
+            }
+        }
+#endregion
     }
 }

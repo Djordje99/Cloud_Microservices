@@ -19,5 +19,8 @@ namespace Common.Interfaces
 
         [OperationContract]
         Task SetDictionary();
+
+        [OperationContract]
+        Task CancelPurchase(long bankAccount, double price);
     }
 }

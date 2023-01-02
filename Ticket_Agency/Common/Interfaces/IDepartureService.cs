@@ -29,5 +29,11 @@ namespace Common.Interfaces
 
         [OperationContract]
         Task<List<Departure>> ListDepartureFilter(string transportType, DateTime fromDate, int availableTickets);
+
+        [OperationContract]
+        Task<Departure> GetDepartureById(long departureID);
+
+        [OperationContract]
+        Task CancelPurchase(long deaprtureId, int ticketAmount);
     }
 }
