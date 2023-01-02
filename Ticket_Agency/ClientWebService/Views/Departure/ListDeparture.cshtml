@@ -78,6 +78,12 @@
             <th>
                 @Html.DisplayNameFor(model => model.DepartureAvaiableTicketCount)
             </th>
+            <th>
+                Temperature
+            </th>
+            <th>
+                Weather Condition
+            </th>
             <th></th>
         </tr>
     </thead>
@@ -106,7 +112,12 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.DepartureAvaiableTicketCount)
                 </td>
-
+                <td>
+                    @ViewBag.WeatherData[item.ID].Temperature
+                </td>
+                <td>
+                    <img src=" @ViewBag.WeatherData[item.ID].IconLocation" alt="No image"/>                 
+                </td>
                 @if (ViewBag.logged != null)
                 {
                     @using (Html.BeginForm("BuyDepertureTicket", "Departure", FormMethod.Post))

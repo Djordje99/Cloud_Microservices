@@ -8,6 +8,7 @@ using System.Linq;
 using System.ServiceModel;
 using System.Threading.Tasks;
 using Common.Enums;
+using Common.DTO.Weather;
 
 namespace ClientWebService.Controllers
 {
@@ -83,7 +84,8 @@ namespace ClientWebService.Controllers
 
             var binding = new NetTcpBinding(SecurityMode.None);
             var endpointAddress = new EndpointAddress("net.tcp://localhost:19999/WebCommunication");
-            List<Departure> departureLis = new List<Departure>();
+            List<Departure> departureList = new List<Departure>();
+            Dictionary<long, WeatherData> weatherDatas = new Dictionary<long, WeatherData>();
 
             using (var channelFactory = new ChannelFactory<IValidatorService>(binding, endpointAddress))
             {
@@ -91,7 +93,7 @@ namespace ClientWebService.Controllers
                 try
                 {
                     validator = channelFactory.CreateChannel();
-                    departureLis = await validator.ListDeparture();
+                    departureList = await validator.ListDeparture();
                 }
                 catch (Exception ex)
                 {
@@ -99,7 +101,39 @@ namespace ClientWebService.Controllers
                 }
             }
 
-            return View(departureLis);
+            foreach (var departure in departureList)
+            {
+                var weatherData = await GetWeatherData(departure.CityName);
+                weatherDatas.Add(departure.ID, weatherData);
+            }
+
+            ViewBag.WeatherData = weatherDatas;
+
+            return View(departureList);
+        }
+
+        private async Task<WeatherData> GetWeatherData(string cityName)
+        {
+            WeatherData weatherData = new WeatherData();
+
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:20045/WeatherService");
+
+            using (var channelFactory = new ChannelFactory<IWeatherService>(binding, endpointAddress))
+            {
+                IWeatherService weather = null;
+                try
+                {
+                    weather = channelFactory.CreateChannel();
+                    weatherData = await weather.GetWeatherData(cityName);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            return weatherData;
         }
 
         [HttpPost]

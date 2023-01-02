@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailStatelessService", "EmailStatelessService\EmailStatelessService.csproj", "{67445A06-C517-4C4C-AB3C-DE1486A95AB9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherStatelessService", "WeatherStatelessService\WeatherStatelessService.csproj", "{1D14D8E3-51C8-4B67-B08F-FA0273CA223F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -89,6 +91,12 @@ Global
 		{67445A06-C517-4C4C-AB3C-DE1486A95AB9}.Release|Any CPU.ActiveCfg = Release|x64
 		{67445A06-C517-4C4C-AB3C-DE1486A95AB9}.Release|x64.ActiveCfg = Release|x64
 		{67445A06-C517-4C4C-AB3C-DE1486A95AB9}.Release|x64.Build.0 = Release|x64
+		{1D14D8E3-51C8-4B67-B08F-FA0273CA223F}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{1D14D8E3-51C8-4B67-B08F-FA0273CA223F}.Debug|x64.ActiveCfg = Debug|x64
+		{1D14D8E3-51C8-4B67-B08F-FA0273CA223F}.Debug|x64.Build.0 = Debug|x64
+		{1D14D8E3-51C8-4B67-B08F-FA0273CA223F}.Release|Any CPU.ActiveCfg = Release|x64
+		{1D14D8E3-51C8-4B67-B08F-FA0273CA223F}.Release|x64.ActiveCfg = Release|x64
+		{1D14D8E3-51C8-4B67-B08F-FA0273CA223F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

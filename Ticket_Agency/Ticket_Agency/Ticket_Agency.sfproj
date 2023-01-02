@@ -45,6 +45,7 @@
     <ProjectReference Include="..\TransactionCoordinatorStatefulService\TransactionCoordinatorStatefulService.csproj" />
     <ProjectReference Include="..\UserStatefulService\UserStatefulService.csproj" />
     <ProjectReference Include="..\ValidatorStatelessService\ValidatorStatelessService.csproj" />
+    <ProjectReference Include="..\WeatherStatelessService\WeatherStatelessService.csproj" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
   <PropertyGroup>

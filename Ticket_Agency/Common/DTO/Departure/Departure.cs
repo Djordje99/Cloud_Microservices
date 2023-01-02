@@ -63,6 +63,7 @@ namespace Common.DTO
             this.DepartureAvaiableTicketCount = departure.DepartureAvaiableTicketCount;
             this.DeaprtureTicketCount = departure.DeaprtureTicketCount;
             this.TransportTypeInt = departure.TransportTypeInt;
+            this.CityName = departure.CityName;
         }
     }
 }
