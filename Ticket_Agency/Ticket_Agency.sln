@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.32929.386
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "Ticket_Agency", "Ticket_Agency\Ticket_Agency.sfproj", "{71990FBA-1CC4-4868-9ECF-6C1BD6A5C799}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientWebService", "ClientWebService\ClientWebService.csproj", "{50F07E84-8504-47A3-A8D1-3982638D56E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClientWebService", "ClientWebService\ClientWebService.csproj", "{50F07E84-8504-47A3-A8D1-3982638D56E0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ValidatorStatelessService", "ValidatorStatelessService\ValidatorStatelessService.csproj", "{40EEE6B9-1F02-4957-90B9-368C2370B449}"
 EndProject
@@ -18,6 +18,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserStatefulService", "UserStatefulService\UserStatefulService.csproj", "{4D9DB655-5DF9-409C-94A2-0FC9FCF8C73C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{C160C280-DC14-49A7-AF51-4ED62541EE2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailStatelessService", "EmailStatelessService\EmailStatelessService.csproj", "{67445A06-C517-4C4C-AB3C-DE1486A95AB9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,12 @@ Global
 		{C160C280-DC14-49A7-AF51-4ED62541EE2C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C160C280-DC14-49A7-AF51-4ED62541EE2C}.Release|x64.ActiveCfg = Release|Any CPU
 		{C160C280-DC14-49A7-AF51-4ED62541EE2C}.Release|x64.Build.0 = Release|Any CPU
+		{67445A06-C517-4C4C-AB3C-DE1486A95AB9}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{67445A06-C517-4C4C-AB3C-DE1486A95AB9}.Debug|x64.ActiveCfg = Debug|x64
+		{67445A06-C517-4C4C-AB3C-DE1486A95AB9}.Debug|x64.Build.0 = Debug|x64
+		{67445A06-C517-4C4C-AB3C-DE1486A95AB9}.Release|Any CPU.ActiveCfg = Release|x64
+		{67445A06-C517-4C4C-AB3C-DE1486A95AB9}.Release|x64.ActiveCfg = Release|x64
+		{67445A06-C517-4C4C-AB3C-DE1486A95AB9}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

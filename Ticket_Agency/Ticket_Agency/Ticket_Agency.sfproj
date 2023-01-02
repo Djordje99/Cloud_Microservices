@@ -41,6 +41,7 @@
       <ServiceLaunchUrl>http://localhost:{ServicePort}/</ServiceLaunchUrl>
     </ProjectReference>
     <ProjectReference Include="..\DepartureStatefulService\DepartureStatefulService.csproj" />
+    <ProjectReference Include="..\EmailStatelessService\EmailStatelessService.csproj" />
     <ProjectReference Include="..\TransactionCoordinatorStatefulService\TransactionCoordinatorStatefulService.csproj" />
     <ProjectReference Include="..\UserStatefulService\UserStatefulService.csproj" />
     <ProjectReference Include="..\ValidatorStatelessService\ValidatorStatelessService.csproj" />
