@@ -1,4 +1,5 @@
 ﻿using ClientWebService.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,9 @@ namespace ClientWebService.Controllers
     {
         public IActionResult Index()
         {
+            var logged = HttpContext.Session.GetString("Logged");
+            ViewBag.logged = logged;
+
             return View();
         }
     }

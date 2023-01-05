@@ -48,8 +48,7 @@ namespace ClientWebService.Controllers
             }
 
             //TODO: wait for pab sub to get status of registration
-
-            return Redirect("/");
+            return RedirectToAction("ListDeparture", "Departure");
         }
 
         public IActionResult Register()
@@ -79,13 +78,25 @@ namespace ClientWebService.Controllers
             }
 
             //TODO: wait for pab sub to get status of registration
+            return RedirectToAction("Register");
+        }
 
-            return Redirect("/");
+        public IActionResult SignOut()
+        {
+            HttpContext.Session.SetString("Logged", "");
+            var logged = HttpContext.Session.GetString("Logged");
+            ViewBag.logged = logged;
+
+            return RedirectToAction("Index", "Home");
         }
 
         public async Task<IActionResult> UserPurchaseList()
         {
-            var loggedUsername = HttpContext.Session.GetString("Logged");
+            var logged = HttpContext.Session.GetString("Logged");
+            ViewBag.logged = logged;
+
+            if (logged == null || logged == "")
+                return RedirectToAction("Index", "Home");
 
             List<DetailPurchase> detailPurchases = new List<DetailPurchase>();
 
@@ -98,7 +109,7 @@ namespace ClientWebService.Controllers
                 try
                 {
                     validator = channelFactory.CreateChannel();
-                    detailPurchases = await validator.PurchaseList(loggedUsername);
+                    detailPurchases = await validator.PurchaseList(logged);
 
                 }
                 catch (Exception ex)
@@ -113,6 +124,12 @@ namespace ClientWebService.Controllers
         [HttpPost]
         public async Task<IActionResult> CancelTicket(CancelPurchase cancelPurchase)
         {
+            var logged = HttpContext.Session.GetString("Logged");
+            ViewBag.logged = logged;
+
+            if (logged == null || logged == "")
+                return RedirectToAction("Index", "Home");
+
             var binding = new NetTcpBinding(SecurityMode.None);
             var endpointAddress = new EndpointAddress("net.tcp://localhost:19999/WebCommunication");
 

@@ -55,10 +55,11 @@ namespace ClientWebService.Controllers
         public async Task<IActionResult> FilterDeparture(string transportType, DateTime fromDate, int availableTickets)
         {
             ViewBag.logged = HttpContext.Session.GetString("Logged");
+            List<Departure> departureList = new List<Departure>();
+            Dictionary<long, WeatherData> weatherDatas = new Dictionary<long, WeatherData>();
 
             var binding = new NetTcpBinding(SecurityMode.None);
             var endpointAddress = new EndpointAddress("net.tcp://localhost:19999/WebCommunication");
-            List<Departure> departureLis = new List<Departure>();
 
             using (var channelFactory = new ChannelFactory<IValidatorService>(binding, endpointAddress))
             {
@@ -66,7 +67,7 @@ namespace ClientWebService.Controllers
                 try
                 {
                     validator = channelFactory.CreateChannel();
-                    departureLis = await validator.ListDepartureFilter(transportType, fromDate, availableTickets);
+                    departureList = await validator.ListDepartureFilter(transportType, fromDate, availableTickets);
                 }
                 catch (Exception ex)
                 {
@@ -74,7 +75,15 @@ namespace ClientWebService.Controllers
                 }
             }
 
-            return View("ListDeparture", departureLis);
+            foreach (var departure in departureList)
+            {
+                var weatherData = await GetWeatherData(departure.CityName);
+                weatherDatas.Add(departure.ID, weatherData);
+            }
+
+            ViewBag.WeatherData = weatherDatas;
+
+            return View("ListDeparture", departureList);
         }
 
         public async Task<IActionResult> ListDeparture()
@@ -139,11 +148,15 @@ namespace ClientWebService.Controllers
         [HttpPost]
         public async Task<IActionResult> BuyDepertureTicket(long id, int amount)
         {
-            var username = HttpContext.Session.GetString("Logged");
+            var logged = HttpContext.Session.GetString("Logged");
+            ViewBag.logged = logged;
+
+            if (logged == null || logged == "")
+                return RedirectToAction("Index", "Home");
 
             var binding = new NetTcpBinding(SecurityMode.None);
             var endpointAddress = new EndpointAddress("net.tcp://localhost:19999/WebCommunication");
-            List<Departure> departureLis = new List<Departure>();
+            List<Departure> departureList = new List<Departure>();
 
             using (var channelFactory = new ChannelFactory<IValidatorService>(binding, endpointAddress))
             {
@@ -151,7 +164,7 @@ namespace ClientWebService.Controllers
                 try
                 {
                     validator = channelFactory.CreateChannel();
-                    await validator.BuyDepertureTicket(username, id, amount);
+                    await validator.BuyDepertureTicket(logged, id, amount);
                 }
                 catch (Exception ex)
                 {
@@ -161,7 +174,7 @@ namespace ClientWebService.Controllers
 
             //get from pub sub
 
-            return Redirect("/");
+            return RedirectToAction("UserPurchaseList", "User");
         }
     }
 }
