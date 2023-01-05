@@ -37,5 +37,8 @@ namespace Common.Interfaces
 
         [OperationContract]
         Task CancelPurchase(CancelPurchase cancelPurchase);
+
+        [OperationContract]
+        Task<List<Departure>> ListHistoryDeparture();
     }
 }

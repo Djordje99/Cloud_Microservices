@@ -121,6 +121,42 @@ namespace ClientWebService.Controllers
             return View(departureList);
         }
 
+
+        public async Task<IActionResult> ListHistoryDeparture()
+        {
+            ViewBag.logged = HttpContext.Session.GetString("Logged");
+
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:19999/WebCommunication");
+            List<Departure> departureList = new List<Departure>();
+            Dictionary<long, WeatherData> weatherDatas = new Dictionary<long, WeatherData>();
+
+            using (var channelFactory = new ChannelFactory<IValidatorService>(binding, endpointAddress))
+            {
+                IValidatorService validator = null;
+                try
+                {
+                    validator = channelFactory.CreateChannel();
+                    departureList = await validator.ListHistoryDeparture();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            foreach (var departure in departureList)
+            {
+                var weatherData = await GetWeatherData(departure.CityName);
+                weatherDatas.Add(departure.ID, weatherData);
+            }
+
+            ViewBag.WeatherData = weatherDatas;
+
+            return View(departureList);
+        }
+
+
         private async Task<WeatherData> GetWeatherData(string cityName)
         {
             WeatherData weatherData = new WeatherData();

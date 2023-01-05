@@ -1,0 +1,74 @@
+﻿@model IEnumerable<Common.DTO.Departure>
+
+@{
+    ViewData["Title"] = "HistoryDepartures";
+}
+
+<h2>History Departures</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.CityName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TransportType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Price)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DepartureStart)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DepartureReturn)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DeaprtureTicketCount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DepartureAvaiableTicketCount)
+            </th>
+            <th>
+                Temperature
+            </th>
+            <th>
+                Weather Condition
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.CityName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TransportType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Price)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DepartureStart)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DepartureReturn)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DeaprtureTicketCount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DepartureAvaiableTicketCount)
+            </td>
+            <td>
+                @ViewBag.WeatherData[item.ID].Temperature
+            </td>
+            <td>
+                <img src=" @ViewBag.WeatherData[item.ID].IconLocation" alt="No image" />
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

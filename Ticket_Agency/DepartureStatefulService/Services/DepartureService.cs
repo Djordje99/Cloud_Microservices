@@ -201,6 +201,26 @@ namespace DepartureStatefulService.Services
             return departureList;
         }
 
+        public async Task<List<Departure>> ListHistoryDeparture()
+        {
+            List<Departure> departureList = new List<Departure>();
+
+            using (var tx = this._stateManager.CreateTransaction())
+            {
+                var enumerator = (await this._departureDictionary.CreateEnumerableAsync(tx)).GetAsyncEnumerator();
+
+                while (await enumerator.MoveNextAsync(this._cancellationToken))
+                {
+                    Departure departure = enumerator.Current.Value;
+                    if (departure.DepartureStart < DateTime.Now)
+                        departureList.Add(departure);
+
+                }
+            }
+
+            return departureList;
+        }
+
         #region StartThread
         private async void LoadTableData()
         {
@@ -245,6 +265,6 @@ namespace DepartureStatefulService.Services
                 Thread.Sleep(5000);
             }
         }
-#endregion
+        #endregion
     }
 }
