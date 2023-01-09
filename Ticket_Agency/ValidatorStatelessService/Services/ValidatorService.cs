@@ -170,6 +170,31 @@ namespace ValidatorStatelessService.Services
             return departureList;
         }
 
+
+        public async Task<List<Departure>> ListDepartureSort(string sortBy, string direction)
+        {
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:20015/DepartureService");
+            List<Departure> departureList = new List<Departure>();
+
+            using (var channelFactory = new ChannelFactory<IDepartureService>(binding, endpointAddress))
+            {
+                IDepartureService departureService = null;
+                try
+                {
+                    departureService = channelFactory.CreateChannel();
+                    departureList = await departureService.ListDepartureSort(sortBy, direction);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            return departureList;
+        }
+
+
         public async Task CancelPurchase(CancelPurchase cancelPurchase)
         {
             long bankAccount = 0;

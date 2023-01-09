@@ -161,6 +161,27 @@ namespace DepartureStatefulService.Services
             return departureList;
         }
 
+        public async Task<List<Departure>> ListDepartureSort(string sortBy, string direction)
+        {
+            List<Departure> departureList = await ListHistoryDeparture();
+
+            if (sortBy == "DATE")
+            {
+                departureList = departureList.OrderBy(x => x.DepartureStart).ToList();
+            }
+            else if(sortBy == "TICKET")
+            {
+                departureList = departureList.OrderBy(x => x.DepartureAvaiableTicketCount).ToList();
+            }
+
+            if(direction == "DOWN")
+            {
+                departureList.Reverse();
+            }
+
+            return departureList;
+        }
+
         public async Task<List<Departure>> ListDepartureFilter(string transportType, DateTime fromDate, int availableTickets)
         {
             int transportTypeInt = -1;
@@ -265,6 +286,7 @@ namespace DepartureStatefulService.Services
                 Thread.Sleep(5000);
             }
         }
+
         #endregion
     }
 }

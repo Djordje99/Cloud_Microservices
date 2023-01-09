@@ -40,5 +40,8 @@ namespace Common.Interfaces
 
         [OperationContract]
         Task<List<Departure>> ListHistoryDeparture();
+
+        [OperationContract]
+        Task<List<Departure>> ListDepartureSort(string sortBy, string direction);
     }
 }

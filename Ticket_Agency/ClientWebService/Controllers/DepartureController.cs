@@ -86,6 +86,43 @@ namespace ClientWebService.Controllers
             return View("ListDeparture", departureList);
         }
 
+
+        [HttpPost]
+        public async Task<IActionResult> SortDeparture(string sortBy, string direction)
+        {
+            ViewBag.logged = HttpContext.Session.GetString("Logged");
+            List<Departure> departureList = new List<Departure>();
+            Dictionary<long, WeatherData> weatherDatas = new Dictionary<long, WeatherData>();
+
+            var binding = new NetTcpBinding(SecurityMode.None);
+            var endpointAddress = new EndpointAddress("net.tcp://localhost:19999/WebCommunication");
+
+            using (var channelFactory = new ChannelFactory<IValidatorService>(binding, endpointAddress))
+            {
+                IValidatorService validator = null;
+                try
+                {
+                    validator = channelFactory.CreateChannel();
+                    departureList = await validator.ListDepartureSort(sortBy, direction);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            foreach (var departure in departureList)
+            {
+                var weatherData = await GetWeatherData(departure.CityName);
+                weatherDatas.Add(departure.ID, weatherData);
+            }
+
+            ViewBag.WeatherData = weatherDatas;
+
+            return View("ListHistoryDeparture", departureList);
+        }
+
+
         public async Task<IActionResult> ListDeparture()
         {
             ViewBag.logged = HttpContext.Session.GetString("Logged");

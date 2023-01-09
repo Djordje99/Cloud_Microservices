@@ -6,6 +6,46 @@
 
 <h2>History Departures</h2>
 
+
+@using (Html.BeginForm("SortDeparture", "Departure", FormMethod.Post))
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    <label for="sortBy">Sort By:</label>
+                </th>
+                <th>
+                    <label for="direction">Direction:</label>
+                </th>
+                <th>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <select id="sortBy" name="sortBy" class="form-control">
+                        <option value="">All</option>
+                        <option value="DATE">Departure date</option>
+                        <option value="TICKET">Ticket left</option>
+                    </select>
+                </td>
+                <td>
+                    <select id="direction" name="direction" class="form-control">
+                        <option value="">All</option>
+                        <option value="UP">Less first</option>
+                        <option value="DOWN">Less last</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="submit" value="Sort" class="btn btn-default" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+}
+
 <table class="table">
     <thead>
         <tr>
@@ -39,36 +79,37 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.CityName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TransportType)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DepartureStart)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DepartureReturn)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DeaprtureTicketCount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DepartureAvaiableTicketCount)
-            </td>
-            <td>
-                @ViewBag.WeatherData[item.ID].Temperature
-            </td>
-            <td>
-                <img src=" @ViewBag.WeatherData[item.ID].IconLocation" alt="No image" />
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CityName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TransportType)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Price)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DepartureStart)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DepartureReturn)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DeaprtureTicketCount)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DepartureAvaiableTicketCount)
+                </td>
+                <td>
+                    @ViewBag.WeatherData[item.ID].Temperature
+                </td>
+                <td>
+                    <img src=" @ViewBag.WeatherData[item.ID].IconLocation" alt="No image" />
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
