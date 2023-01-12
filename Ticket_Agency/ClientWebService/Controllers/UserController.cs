@@ -27,6 +27,8 @@ namespace ClientWebService.Controllers
         [HttpPost]
         public async Task<IActionResult> LogIn(RegisterUser user)
         {
+            bool isLogged = false;
+
             var binding = new NetTcpBinding(SecurityMode.None);
             var endpointAddress = new EndpointAddress("net.tcp://localhost:19999/WebCommunication");
 
@@ -36,9 +38,10 @@ namespace ClientWebService.Controllers
                 try
                 {
                     validator = channelFactory.CreateChannel();
-                    await validator.ValidateUserLogIn(user);
+                    isLogged = await validator.ValidateUserLogIn(user);
                     //TODO: get value from pub sub and set session
-                    HttpContext.Session.SetString("Logged", user.Username);
+                    if(isLogged)
+                        HttpContext.Session.SetString("Logged", user.Username);
 
                 }
                 catch (Exception ex)

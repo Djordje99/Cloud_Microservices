@@ -368,7 +368,7 @@ namespace ValidatorStatelessService.Services
             return detailPurchases;
         }
 
-        public async Task ValidateUserLogIn(RegisterUser user)
+        public async Task<bool> ValidateUserLogIn(RegisterUser user)
         {
             bool isLoged = false;
 
@@ -389,11 +389,7 @@ namespace ValidatorStatelessService.Services
                 }
             }
 
-            if (isLoged)
-            {
-                //include pub sub 
-                Console.WriteLine(isLoged);
-            }
+            return isLoged;
         }
 
         public async Task ValidateUserRegister(RegisterUser user)
